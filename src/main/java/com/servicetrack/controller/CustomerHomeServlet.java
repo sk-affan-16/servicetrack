@@ -20,6 +20,26 @@ public class CustomerHomeServlet extends HttpServlet {
 
         HttpSession session = request.getSession(false);
 
+        if (session == null) {
+            response.sendRedirect(
+                    request.getContextPath() + "/login"
+            );
+            return;
+        }
+
+        Long userId =
+                (Long) session.getAttribute("userId");
+
+        String role =
+                (String) session.getAttribute("role");
+
+        if (userId == null || !"CUSTOMER".equals(role)) {
+            response.sendRedirect(
+                    request.getContextPath() + "/login"
+            );
+            return;
+        }
+
         String fullName =
                 (String) session.getAttribute("fullName");
 
@@ -53,13 +73,33 @@ public class CustomerHomeServlet extends HttpServlet {
                         Session authentication is working.
                     </p>
 
-                    <a href="%s/logout">Logout</a>
+                    <hr>
+
+                    <p>
+                        <a href="%s/customer/profile">
+                            Customer Profile
+                        </a>
+                    </p>
+
+                    <p>
+                        <a href="%s/customer/products">
+                            My Products
+                        </a>
+                    </p>
+
+                    <p>
+                        <a href="%s/logout">
+                            Logout
+                        </a>
+                    </p>
 
                 </body>
                 </html>
                 """.formatted(
                 fullName,
                 username,
+                request.getContextPath(),
+                request.getContextPath(),
                 request.getContextPath()
         ));
     }
