@@ -28,12 +28,19 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- Jakarta Server Pages API - provided by Tomcat -->
+        <!-- Jakarta Server Pages API - provided by Tomcat 11 -->
         <dependency>
             <groupId>jakarta.servlet.jsp</groupId>
             <artifactId>jakarta.servlet.jsp-api</artifactId>
             <version>4.0.0</version>
             <scope>provided</scope>
+        </dependency>
+
+        <!-- MySQL JDBC Driver -->
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <version>26.7.0</version>
         </dependency>
 
     </dependencies>
