@@ -3,7 +3,8 @@
 <%@ page import="com.servicetrack.model.Product" %>
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>My Products - ServiceTrack</title>
@@ -11,61 +12,96 @@
 
 <body>
 
-<h1>My Products</h1>
+<h1>ServiceTrack</h1>
+
+<h2>My Products</h2>
 
 <%
     String error = (String) request.getAttribute("error");
 
     if (error != null) {
 %>
-<p style="color:red;"><%= error %></p>
+
+<p style="color:red;">
+    <%= error %>
+</p>
+
 <%
     }
 %>
 
-<h2>Register New Product</h2>
+<hr>
+
+<h3>Register New Product</h3>
 
 <form action="<%= request.getContextPath() %>/customer/products"
       method="post">
 
-    <label>Product Name:</label>
-    <input type="text"
-           name="productName"
-           required>
-    <br><br>
+    <p>
+        <label for="productName">
+            Product Name:
+        </label>
 
-    <label>Brand:</label>
-    <input type="text"
-           name="brand"
-           required>
-    <br><br>
+        <input type="text"
+               id="productName"
+               name="productName"
+               required>
+    </p>
 
-    <label>Model Number:</label>
-    <input type="text"
-           name="modelNumber">
-    <br><br>
+    <p>
+        <label for="brand">
+            Brand:
+        </label>
 
-    <label>Serial Number:</label>
-    <input type="text"
-           name="serialNumber"
-           required>
-    <br><br>
+        <input type="text"
+               id="brand"
+               name="brand"
+               required>
+    </p>
 
-    <label>Purchase Date:</label>
-    <input type="date"
-           name="purchaseDate"
-           required>
-    <br><br>
+    <p>
+        <label for="modelNumber">
+            Model Number:
+        </label>
 
-    <button type="submit">
-        Register Product
-    </button>
+        <input type="text"
+               id="modelNumber"
+               name="modelNumber">
+    </p>
+
+    <p>
+        <label for="serialNumber">
+            Serial Number:
+        </label>
+
+        <input type="text"
+               id="serialNumber"
+               name="serialNumber"
+               required>
+    </p>
+
+    <p>
+        <label for="purchaseDate">
+            Purchase Date:
+        </label>
+
+        <input type="date"
+               id="purchaseDate"
+               name="purchaseDate"
+               required>
+    </p>
+
+    <p>
+        <button type="submit">
+            Register Product
+        </button>
+    </p>
 
 </form>
 
 <hr>
 
-<h2>Registered Products</h2>
+<h3>Registered Products</h3>
 
 <%
     List<Product> products =
@@ -74,13 +110,17 @@
     if (products == null || products.isEmpty()) {
 %>
 
-<p>No products registered yet.</p>
+<p>
+    No products registered yet.
+</p>
 
 <%
 } else {
 %>
 
-<table border="1" cellpadding="8" cellspacing="0">
+<table border="1"
+       cellpadding="8"
+       cellspacing="0">
 
     <tr>
         <th>ID</th>
@@ -96,11 +136,18 @@
     %>
 
     <tr>
-        <td><%= product.getProductId() %></td>
 
-        <td><%= product.getProductName() %></td>
+        <td>
+            <%= product.getProductId() %>
+        </td>
 
-        <td><%= product.getBrand() %></td>
+        <td>
+            <%= product.getProductName() %>
+        </td>
+
+        <td>
+            <%= product.getBrand() %>
+        </td>
 
         <td>
             <%= product.getModelNumber() == null
@@ -108,9 +155,14 @@
                     : product.getModelNumber() %>
         </td>
 
-        <td><%= product.getSerialNumber() %></td>
+        <td>
+            <%= product.getSerialNumber() %>
+        </td>
 
-        <td><%= product.getPurchaseDate() %></td>
+        <td>
+            <%= product.getPurchaseDate() %>
+        </td>
+
     </tr>
 
     <%
@@ -123,11 +175,36 @@
     }
 %>
 
-<br>
+<hr>
 
-<a href="<%= request.getContextPath() %>/customer/home">
-    Back to Customer Home
-</a>
+<h3>Customer Services</h3>
+
+<p>
+    <a href="<%= request.getContextPath() %>/customer/warranty">
+        My Warranty
+    </a>
+</p>
+
+<p>
+    <a href="<%= request.getContextPath() %>/customer/profile">
+        Customer Profile
+    </a>
+</p>
+
+<p>
+    <a href="<%= request.getContextPath() %>/customer/">
+        Back to Customer Dashboard
+    </a>
+</p>
+
+<hr>
+
+<p>
+    <a href="<%= request.getContextPath() %>/logout">
+        Logout
+    </a>
+</p>
 
 </body>
+
 </html>

@@ -2,17 +2,10 @@
 <%@ page import="com.servicetrack.model.Customer" %>
 
 <%
-    String fullName =
-            (String) session.getAttribute("fullName");
-
-    String username =
-            (String) session.getAttribute("username");
-
-    Customer customer =
-            (Customer) request.getAttribute("customer");
-
-    String error =
-            (String) request.getAttribute("error");
+    String fullName = (String) session.getAttribute("fullName");
+    String username = (String) session.getAttribute("username");
+    Customer customer = (Customer) request.getAttribute("customer");
+    String error = (String) request.getAttribute("error");
 %>
 
 <!DOCTYPE html>
@@ -37,29 +30,59 @@
     Username: <%= username %>
 </p>
 
-<p>
-    You are successfully authenticated as a CUSTOMER.
-</p>
-
-<p>
-    Session authentication is working.
-</p>
-
-<%
-    if (error != null) {
-%>
+<% if (error != null) { %>
 
 <p style="color:red;">
     <%= error %>
 </p>
 
-<%
-    }
-%>
+<% } %>
 
 <hr>
 
 <h3>Customer Profile</h3>
+
+<% if (customer == null) { %>
+
+<p>
+    Your customer profile has not been created yet.
+</p>
+
+<% } else { %>
+
+<p>
+    Address:
+    <%= customer.getAddress() == null
+            ? ""
+            : customer.getAddress() %>
+</p>
+
+<p>
+    City:
+    <%= customer.getCity() == null
+            ? ""
+            : customer.getCity() %>
+</p>
+
+<p>
+    State:
+    <%= customer.getState() == null
+            ? ""
+            : customer.getState() %>
+</p>
+
+<p>
+    Pincode:
+    <%= customer.getPincode() == null
+            ? ""
+            : customer.getPincode() %>
+</p>
+
+<% } %>
+
+<hr>
+
+<h3>Customer Services</h3>
 
 <p>
     <a href="<%= request.getContextPath() %>/customer/profile">
@@ -67,13 +90,15 @@
     </a>
 </p>
 
-<hr>
-
-<h3>Customer Services</h3>
-
 <p>
     <a href="<%= request.getContextPath() %>/customer/products">
         My Products
+    </a>
+</p>
+
+<p>
+    <a href="<%= request.getContextPath() %>/customer/warranty">
+        My Warranty
     </a>
 </p>
 
