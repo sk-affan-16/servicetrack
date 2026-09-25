@@ -9,6 +9,7 @@ public class Ticket implements Serializable {
 
     private Long ticketId;
     private Long serviceRequestId;
+    private Long technicianId;
     private String ticketNumber;
     private TicketStatus status;
     private LocalDateTime createdAt;
@@ -20,6 +21,7 @@ public class Ticket implements Serializable {
     public Ticket(
             Long ticketId,
             Long serviceRequestId,
+            Long technicianId,
             String ticketNumber,
             TicketStatus status,
             LocalDateTime createdAt,
@@ -27,6 +29,7 @@ public class Ticket implements Serializable {
 
         this.ticketId = ticketId;
         this.serviceRequestId = serviceRequestId;
+        this.technicianId = technicianId;
         this.ticketNumber = ticketNumber;
         this.status = status;
         this.createdAt = createdAt;
@@ -47,6 +50,14 @@ public class Ticket implements Serializable {
 
     public void setServiceRequestId(Long serviceRequestId) {
         this.serviceRequestId = serviceRequestId;
+    }
+
+    public Long getTechnicianId() {
+        return technicianId;
+    }
+
+    public void setTechnicianId(Long technicianId) {
+        this.technicianId = technicianId;
     }
 
     public String getTicketNumber() {
