@@ -25,11 +25,13 @@ public class TicketDAO {
                 """;
 
         try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+             PreparedStatement statement =
+                     connection.prepareStatement(sql)) {
 
             statement.setLong(1, ticketId);
 
-            try (ResultSet resultSet = statement.executeQuery()) {
+            try (ResultSet resultSet =
+                         statement.executeQuery()) {
 
                 if (resultSet.next()) {
                     return mapRow(resultSet);
@@ -55,11 +57,13 @@ public class TicketDAO {
                 """;
 
         try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+             PreparedStatement statement =
+                     connection.prepareStatement(sql)) {
 
             statement.setLong(1, serviceRequestId);
 
-            try (ResultSet resultSet = statement.executeQuery()) {
+            try (ResultSet resultSet =
+                         statement.executeQuery()) {
 
                 if (resultSet.next()) {
                     return mapRow(resultSet);
@@ -85,11 +89,13 @@ public class TicketDAO {
                 """;
 
         try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+             PreparedStatement statement =
+                     connection.prepareStatement(sql)) {
 
             statement.setString(1, ticketNumber);
 
-            try (ResultSet resultSet = statement.executeQuery()) {
+            try (ResultSet resultSet =
+                         statement.executeQuery()) {
 
                 if (resultSet.next()) {
                     return mapRow(resultSet);
@@ -100,6 +106,12 @@ public class TicketDAO {
         return null;
     }
 
+    /*
+     * Normal create method.
+     *
+     * This method creates its own database connection.
+     * It is kept for normal non-transactional use.
+     */
     public Long create(Ticket ticket)
             throws SQLException {
 
@@ -110,9 +122,10 @@ public class TicketDAO {
                 """;
 
         try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(
-                     sql,
-                     Statement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement statement =
+                     connection.prepareStatement(
+                             sql,
+                             Statement.RETURN_GENERATED_KEYS)) {
 
             statement.setLong(
                     1,
@@ -129,7 +142,8 @@ public class TicketDAO {
                     ticket.getStatus().name()
             );
 
-            int rowsAffected = statement.executeUpdate();
+            int rowsAffected =
+                    statement.executeUpdate();
 
             if (rowsAffected == 0) {
                 throw new SQLException(
@@ -141,7 +155,76 @@ public class TicketDAO {
                          statement.getGeneratedKeys()) {
 
                 if (generatedKeys.next()) {
-                    Long ticketId = generatedKeys.getLong(1);
+
+                    Long ticketId =
+                            generatedKeys.getLong(1);
+
+                    ticket.setTicketId(ticketId);
+
+                    return ticketId;
+                }
+            }
+        }
+
+        throw new SQLException(
+                "Creating ticket failed: no ID obtained."
+        );
+    }
+
+    /*
+     * Transaction-capable create method.
+     *
+     * The connection is provided by the Service layer.
+     * This allows ServiceRequestDAO and TicketDAO
+     * to use the same JDBC transaction.
+     */
+    public Long create(
+            Connection connection,
+            Ticket ticket)
+            throws SQLException {
+
+        String sql = """
+                INSERT INTO tickets
+                (service_request_id, ticket_number, status)
+                VALUES (?, ?, ?)
+                """;
+
+        try (PreparedStatement statement =
+                     connection.prepareStatement(
+                             sql,
+                             Statement.RETURN_GENERATED_KEYS)) {
+
+            statement.setLong(
+                    1,
+                    ticket.getServiceRequestId()
+            );
+
+            statement.setString(
+                    2,
+                    ticket.getTicketNumber()
+            );
+
+            statement.setString(
+                    3,
+                    ticket.getStatus().name()
+            );
+
+            int rowsAffected =
+                    statement.executeUpdate();
+
+            if (rowsAffected == 0) {
+                throw new SQLException(
+                        "Creating ticket failed."
+                );
+            }
+
+            try (ResultSet generatedKeys =
+                         statement.getGeneratedKeys()) {
+
+                if (generatedKeys.next()) {
+
+                    Long ticketId =
+                            generatedKeys.getLong(1);
 
                     ticket.setTicketId(ticketId);
 
@@ -167,7 +250,8 @@ public class TicketDAO {
                 """;
 
         try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+             PreparedStatement statement =
+                     connection.prepareStatement(sql)) {
 
             statement.setString(1, status.name());
             statement.setLong(2, ticketId);
@@ -191,17 +275,22 @@ public class TicketDAO {
                 ORDER BY created_at DESC
                 """;
 
-        List<Ticket> tickets = new ArrayList<>();
+        List<Ticket> tickets =
+                new ArrayList<>();
 
         try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+             PreparedStatement statement =
+                     connection.prepareStatement(sql)) {
 
             statement.setString(1, status.name());
 
-            try (ResultSet resultSet = statement.executeQuery()) {
+            try (ResultSet resultSet =
+                         statement.executeQuery()) {
 
                 while (resultSet.next()) {
-                    tickets.add(mapRow(resultSet));
+                    tickets.add(
+                            mapRow(resultSet)
+                    );
                 }
             }
         }
@@ -215,15 +304,21 @@ public class TicketDAO {
         Ticket ticket = new Ticket();
 
         ticket.setTicketId(
-                resultSet.getLong("ticket_id")
+                resultSet.getLong(
+                        "ticket_id"
+                )
         );
 
         ticket.setServiceRequestId(
-                resultSet.getLong("service_request_id")
+                resultSet.getLong(
+                        "service_request_id"
+                )
         );
 
         ticket.setTicketNumber(
-                resultSet.getString("ticket_number")
+                resultSet.getString(
+                        "ticket_number"
+                )
         );
 
         ticket.setStatus(
