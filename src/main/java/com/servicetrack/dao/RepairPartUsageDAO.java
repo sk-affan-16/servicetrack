@@ -33,8 +33,19 @@ public class RepairPartUsageDAO {
             RepairPartUsage usage)
             throws SQLException {
 
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement =
+        try (Connection connection =
+                     DBConnection.getConnection()) {
+
+            return create(connection, usage);
+        }
+    }
+
+    public RepairPartUsage create(
+            Connection connection,
+            RepairPartUsage usage)
+            throws SQLException {
+
+        try (PreparedStatement statement =
                      connection.prepareStatement(
                              INSERT_SQL,
                              Statement.RETURN_GENERATED_KEYS)) {

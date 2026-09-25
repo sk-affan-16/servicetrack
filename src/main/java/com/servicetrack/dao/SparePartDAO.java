@@ -172,6 +172,58 @@ public class SparePartDAO {
         }
     }
 
+    public SparePart findByIdForUpdate(
+            Connection connection,
+            Long sparePartId)
+            throws SQLException {
+
+        String sql =
+                "SELECT spare_part_id, part_name, part_number, " +
+                        "quantity, unit_price, created_at, updated_at " +
+                        "FROM spare_parts " +
+                        "WHERE spare_part_id = ? " +
+                        "FOR UPDATE";
+
+        try (PreparedStatement statement =
+                     connection.prepareStatement(sql)) {
+
+            statement.setLong(1, sparePartId);
+
+            try (ResultSet resultSet =
+                         statement.executeQuery()) {
+
+                if (resultSet.next()) {
+                    return mapSparePart(resultSet);
+                }
+
+                return null;
+            }
+        }
+    }
+
+    public boolean decreaseQuantity(
+            Connection connection,
+            Long sparePartId,
+            int quantity)
+            throws SQLException {
+
+        String sql =
+                "UPDATE spare_parts " +
+                        "SET quantity = quantity - ? " +
+                        "WHERE spare_part_id = ? " +
+                        "AND quantity >= ?";
+
+        try (PreparedStatement statement =
+                     connection.prepareStatement(sql)) {
+
+            statement.setInt(1, quantity);
+            statement.setLong(2, sparePartId);
+            statement.setInt(3, quantity);
+
+            return statement.executeUpdate() > 0;
+        }
+    }
+
     private SparePart mapSparePart(
             ResultSet resultSet)
             throws SQLException {
