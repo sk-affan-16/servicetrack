@@ -16,6 +16,7 @@ public class TicketDAO {
         String sql = """
                 SELECT ticket_id,
                        service_request_id,
+                       technician_id,
                        ticket_number,
                        status,
                        created_at,
@@ -48,6 +49,7 @@ public class TicketDAO {
         String sql = """
                 SELECT ticket_id,
                        service_request_id,
+                       technician_id,
                        ticket_number,
                        status,
                        created_at,
@@ -80,6 +82,7 @@ public class TicketDAO {
         String sql = """
                 SELECT ticket_id,
                        service_request_id,
+                       technician_id,
                        ticket_number,
                        status,
                        created_at,
@@ -109,8 +112,8 @@ public class TicketDAO {
     /*
      * Normal create method.
      *
-     * This method creates its own database connection.
-     * It is kept for normal non-transactional use.
+     * Technician assignment happens separately,
+     * so technician_id is initially NULL.
      */
     public Long create(Ticket ticket)
             throws SQLException {
@@ -174,9 +177,8 @@ public class TicketDAO {
     /*
      * Transaction-capable create method.
      *
-     * The connection is provided by the Service layer.
-     * This allows ServiceRequestDAO and TicketDAO
-     * to use the same JDBC transaction.
+     * Technician assignment happens separately,
+     * so technician_id is initially NULL.
      */
     public Long create(
             Connection connection,
@@ -238,6 +240,76 @@ public class TicketDAO {
         );
     }
 
+    /*
+     * Assigns a technician to a ticket.
+     */
+    public boolean assignTechnician(
+            Long ticketId,
+            Long technicianId)
+            throws SQLException {
+
+        String sql = """
+                UPDATE tickets
+                SET technician_id = ?,
+                    status = ?
+                WHERE ticket_id = ?
+                """;
+
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement =
+                     connection.prepareStatement(sql)) {
+
+            statement.setLong(1, technicianId);
+            statement.setString(2, TicketStatus.ASSIGNED.name());
+            statement.setLong(3, ticketId);
+
+            return statement.executeUpdate() > 0;
+        }
+    }
+
+    /*
+     * Finds all tickets assigned to a technician.
+     */
+    public List<Ticket> findByTechnicianId(
+            Long technicianId)
+            throws SQLException {
+
+        String sql = """
+                SELECT ticket_id,
+                       service_request_id,
+                       technician_id,
+                       ticket_number,
+                       status,
+                       created_at,
+                       updated_at
+                FROM tickets
+                WHERE technician_id = ?
+                ORDER BY created_at DESC
+                """;
+
+        List<Ticket> tickets =
+                new ArrayList<>();
+
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement =
+                     connection.prepareStatement(sql)) {
+
+            statement.setLong(1, technicianId);
+
+            try (ResultSet resultSet =
+                         statement.executeQuery()) {
+
+                while (resultSet.next()) {
+                    tickets.add(
+                            mapRow(resultSet)
+                    );
+                }
+            }
+        }
+
+        return tickets;
+    }
+
     public boolean updateStatus(
             Long ticketId,
             TicketStatus status)
@@ -266,6 +338,7 @@ public class TicketDAO {
         String sql = """
                 SELECT ticket_id,
                        service_request_id,
+                       technician_id,
                        ticket_number,
                        status,
                        created_at,
@@ -314,6 +387,13 @@ public class TicketDAO {
                         "service_request_id"
                 )
         );
+
+        long technicianId =
+                resultSet.getLong("technician_id");
+
+        if (!resultSet.wasNull()) {
+            ticket.setTechnicianId(technicianId);
+        }
 
         ticket.setTicketNumber(
                 resultSet.getString(
