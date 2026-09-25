@@ -103,25 +103,6 @@ public class WarrantyServlet extends HttpServlet {
         }
     }
 
-    /*
-     * Customers are not allowed to create or modify
-     * warranty information.
-     *
-     * Warranty creation and management will be handled
-     * from the Admin side in the appropriate module.
-     */
-    @Override
-    protected void doPost(
-            HttpServletRequest request,
-            HttpServletResponse response)
-            throws ServletException, IOException {
-
-        response.sendError(
-                HttpServletResponse.SC_METHOD_NOT_ALLOWED,
-                "Warranty information can only be managed by authorized staff."
-        );
-    }
-
     public static class ProductWarranty {
 
         private final Product product;

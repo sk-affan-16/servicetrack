@@ -9,14 +9,18 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>My Warranties - ServiceTrack</title>
+    <title>My Warranty - ServiceTrack</title>
 </head>
 
 <body>
 
 <h1>ServiceTrack</h1>
 
-<h2>My Product Warranties</h2>
+<h2>My Warranty</h2>
+
+<p>
+    View warranty information for your registered products.
+</p>
 
 <%
     String error =
@@ -35,102 +39,10 @@
 
 <hr>
 
-<h3>Create Warranty</h3>
-
-<%
-    List<Product> products =
-            (List<Product>) request.getAttribute("products");
-%>
-
-<%
-    if (products == null || products.isEmpty()) {
-%>
-
-<p>
-    No registered products found.
-</p>
-
-<%
-} else {
-%>
-
-<form action="<%= request.getContextPath() %>/customer/warranty"
-      method="post">
-
-    <label for="productId">
-        Product:
-    </label>
-
-    <select id="productId"
-            name="productId"
-            required>
-
-        <option value="">
-            Select Product
-        </option>
-
-        <%
-            for (Product product : products) {
-        %>
-
-        <option value="<%= product.getProductId() %>">
-
-            <%= product.getProductName() %>
-            -
-            <%= product.getSerialNumber() %>
-
-        </option>
-
-        <%
-            }
-        %>
-
-    </select>
-
-    <br><br>
-
-    <label for="warrantyStart">
-        Warranty Start Date:
-    </label>
-
-    <input type="date"
-           id="warrantyStart"
-           name="warrantyStart"
-           required>
-
-    <br><br>
-
-    <label for="warrantyEnd">
-        Warranty End Date:
-    </label>
-
-    <input type="date"
-           id="warrantyEnd"
-           name="warrantyEnd"
-           required>
-
-    <br><br>
-
-    <button type="submit">
-        Create Warranty
-    </button>
-
-</form>
-
-<%
-    }
-%>
-
-<hr>
-
-<h3>Warranty Details</h3>
-
 <%
     List<ProductWarranty> productWarranties =
             (List<ProductWarranty>)
-                    request.getAttribute(
-                            "productWarranties"
-                    );
+                    request.getAttribute("productWarranties");
 %>
 
 <%
@@ -139,7 +51,13 @@
 %>
 
 <p>
-    No products available.
+    You have not registered any products yet.
+</p>
+
+<p>
+    <a href="<%= request.getContextPath() %>/customer/products">
+        Register a Product
+    </a>
 </p>
 
 <%
@@ -152,33 +70,14 @@
 
     <tr>
 
-        <th>
-            Product
-        </th>
-
-        <th>
-            Brand
-        </th>
-
-        <th>
-            Serial Number
-        </th>
-
-        <th>
-            Purchase Date
-        </th>
-
-        <th>
-            Warranty Start
-        </th>
-
-        <th>
-            Warranty End
-        </th>
-
-        <th>
-            Status
-        </th>
+        <th>Product</th>
+        <th>Brand</th>
+        <th>Model</th>
+        <th>Serial Number</th>
+        <th>Purchase Date</th>
+        <th>Warranty Start</th>
+        <th>Warranty End</th>
+        <th>Status</th>
 
     </tr>
 
@@ -204,6 +103,12 @@
         </td>
 
         <td>
+            <%= product.getModelNumber() == null
+                    ? "-"
+                    : product.getModelNumber() %>
+        </td>
+
+        <td>
             <%= product.getSerialNumber() %>
         </td>
 
@@ -215,8 +120,12 @@
             if (warranty == null) {
         %>
 
-        <td colspan="2">
-            Not Created
+        <td>
+            Not Available
+        </td>
+
+        <td>
+            Not Available
         </td>
 
         <td>
