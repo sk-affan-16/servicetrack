@@ -51,6 +51,53 @@ public class TicketService {
         );
     }
 
+    /*
+     * Assigns a technician to a ticket.
+     *
+     * The DAO also changes the ticket status
+     * to ASSIGNED.
+     */
+    public boolean assignTechnician(
+            Long ticketId,
+            Long technicianId)
+            throws SQLException {
+
+        validateId(ticketId, "ticket ID");
+        validateId(technicianId, "technician ID");
+
+        Ticket ticket =
+                ticketDAO.findById(ticketId);
+
+        if (ticket == null) {
+            throw new IllegalArgumentException(
+                    "Ticket not found."
+            );
+        }
+
+        return ticketDAO.assignTechnician(
+                ticketId,
+                technicianId
+        );
+    }
+
+    /*
+     * Returns all tickets assigned to
+     * the specified technician.
+     */
+    public List<Ticket> getTicketsByTechnician(
+            Long technicianId)
+            throws SQLException {
+
+        validateId(
+                technicianId,
+                "technician ID"
+        );
+
+        return ticketDAO.findByTechnicianId(
+                technicianId
+        );
+    }
+
     public boolean updateStatus(
             Long ticketId,
             TicketStatus status)
@@ -64,7 +111,8 @@ public class TicketService {
             );
         }
 
-        Ticket ticket = ticketDAO.findById(ticketId);
+        Ticket ticket =
+                ticketDAO.findById(ticketId);
 
         if (ticket == null) {
             throw new IllegalArgumentException(
