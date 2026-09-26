@@ -1,4 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page import="java.util.List" %>
+<%@ page import="com.servicetrack.model.Product" %>
 
 <!DOCTYPE html>
 <html>
@@ -11,28 +13,61 @@
 
 <h2>Raise Service Request</h2>
 
-<%-- Display validation/error message --%>
 <%
     String error = (String) request.getAttribute("error");
 
     if (error != null) {
 %>
-    <p style="color: red;">
-        <%= error %>
-    </p>
+    <p style="color:red;"><%= error %></p>
 <%
     }
+
+    List<Product> products =
+            (List<Product>) request.getAttribute("products");
+%>
+
+<%
+    if (products == null || products.isEmpty()) {
+%>
+
+    <p>You have no registered products.</p>
+
+    <a href="<%= request.getContextPath() %>/customer">
+        Back to Customer Dashboard
+    </a>
+
+<%
+    } else {
 %>
 
 <form method="post"
       action="<%= request.getContextPath() %>/customer/service-request/create">
 
     <div>
-        <label for="productId">Product ID:</label>
-        <input type="number"
-               id="productId"
-               name="productId"
-               required>
+        <label for="productId">Select Product:</label>
+
+        <select id="productId"
+                name="productId"
+                required>
+
+            <option value="">-- Select Product --</option>
+
+            <%
+                for (Product product : products) {
+            %>
+
+                <option value="<%= product.getProductId() %>">
+                    <%= product.getBrand() %>
+                    <%= product.getModel() %>
+                    -
+                    <%= product.getSerialNumber() %>
+                </option>
+
+            <%
+                }
+            %>
+
+        </select>
     </div>
 
     <br>
@@ -64,6 +99,10 @@
 <a href="<%= request.getContextPath() %>/customer">
     Back to Customer Dashboard
 </a>
+
+<%
+    }
+%>
 
 </body>
 </html>
