@@ -59,17 +59,26 @@ public class CreateServiceRequestServlet extends HttpServlet {
             Long productId =
                     Long.parseLong(productIdParameter);
 
-            productService.getProduct(
-                    productId,
-                    userId
-            );
+            /*
+             * Verify that the selected product exists
+             * and belongs to the logged-in customer.
+             */
+            if (productService.getProduct(productId, userId) == null) {
 
+                throw new IllegalArgumentException(
+                        "Selected product was not found or does not belong to you."
+                );
+            }
+
+            /*
+             * Create service request and ticket
+             * inside one database transaction.
+             */
             Ticket ticket =
-                    serviceRequestService
-                            .createServiceRequestWithTicket(
-                                    productId,
-                                    complaintDescription
-                            );
+                    serviceRequestService.createServiceRequestWithTicket(
+                            productId,
+                            complaintDescription
+                    );
 
             response.sendRedirect(
                     request.getContextPath()
