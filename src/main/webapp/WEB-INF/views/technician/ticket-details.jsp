@@ -84,6 +84,82 @@
 
     </table>
 
+    <br>
+
+    <h3>Update Ticket Status</h3>
+
+    <form method="post"
+          action="<%= request.getContextPath() %>/technician/ticket/status">
+
+        <input type="hidden"
+               name="ticketId"
+               value="<%= ticket.getTicketId() %>">
+
+        <label for="status">Status:</label>
+
+        <select id="status"
+                name="status"
+                required>
+
+            <option value="ASSIGNED"
+                <%= ticket.getStatus().name().equals("ASSIGNED")
+                        ? "selected"
+                        : "" %>>
+                ASSIGNED
+            </option>
+
+            <option value="DIAGNOSING"
+                <%= ticket.getStatus().name().equals("DIAGNOSING")
+                        ? "selected"
+                        : "" %>>
+                DIAGNOSING
+            </option>
+
+            <option value="IN_REPAIR"
+                <%= ticket.getStatus().name().equals("IN_REPAIR")
+                        ? "selected"
+                        : "" %>>
+                IN_REPAIR
+            </option>
+
+            <option value="WAITING_FOR_PART"
+                <%= ticket.getStatus().name().equals("WAITING_FOR_PART")
+                        ? "selected"
+                        : "" %>>
+                WAITING_FOR_PART
+            </option>
+
+            <option value="READY"
+                <%= ticket.getStatus().name().equals("READY")
+                        ? "selected"
+                        : "" %>>
+                READY
+            </option>
+
+            <option value="COMPLETED"
+                <%= ticket.getStatus().name().equals("COMPLETED")
+                        ? "selected"
+                        : "" %>>
+                COMPLETED
+            </option>
+
+            <option value="CANCELLED"
+                <%= ticket.getStatus().name().equals("CANCELLED")
+                        ? "selected"
+                        : "" %>>
+                CANCELLED
+            </option>
+
+        </select>
+
+        <br><br>
+
+        <button type="submit">
+            Update Status
+        </button>
+
+    </form>
+
 <%
         } else {
 %>
