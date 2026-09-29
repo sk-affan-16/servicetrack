@@ -5,7 +5,7 @@
 
 CREATE TABLE repairs (
                          repair_id BIGINT PRIMARY KEY AUTO_INCREMENT,
-                         ticket_id BIGINT NOT NULL,
+                         ticket_id BIGINT UNSIGNED NOT NULL,
                          diagnosis VARCHAR(1000),
                          repair_notes VARCHAR(2000),
                          repair_status VARCHAR(30) NOT NULL DEFAULT 'DIAGNOSING',
@@ -22,7 +22,13 @@ CREATE TABLE repairs (
                                                    'READY',
                                                    'COMPLETED'
                                      )
-                                 )
+                                 ),
+
+                         CONSTRAINT fk_repairs_ticket
+                             FOREIGN KEY (ticket_id)
+                                 REFERENCES tickets(ticket_id)
+                                 ON DELETE RESTRICT
+                                 ON UPDATE CASCADE
 );
 
 CREATE TABLE spare_parts (
@@ -44,11 +50,17 @@ CREATE TABLE spare_parts (
 
 CREATE TABLE repair_part_usage (
                                    usage_id BIGINT PRIMARY KEY AUTO_INCREMENT,
-                                   ticket_id BIGINT NOT NULL,
+                                   ticket_id BIGINT UNSIGNED NOT NULL,
                                    spare_part_id BIGINT NOT NULL,
                                    quantity_used INT NOT NULL,
                                    unit_price DECIMAL(10, 2) NOT NULL,
                                    used_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+                                   CONSTRAINT fk_repair_part_usage_ticket
+                                       FOREIGN KEY (ticket_id)
+                                           REFERENCES tickets(ticket_id)
+                                           ON DELETE RESTRICT
+                                           ON UPDATE CASCADE,
 
                                    CONSTRAINT fk_repair_part_usage_spare_part
                                        FOREIGN KEY (spare_part_id)
