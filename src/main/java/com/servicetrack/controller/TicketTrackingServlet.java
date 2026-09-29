@@ -4,6 +4,8 @@ import com.servicetrack.model.Customer;
 import com.servicetrack.model.Product;
 import com.servicetrack.model.ServiceRequest;
 import com.servicetrack.model.Ticket;
+import com.servicetrack.model.User;
+import com.servicetrack.service.AuthService;
 import com.servicetrack.service.CustomerService;
 import com.servicetrack.service.ProductService;
 import com.servicetrack.service.ServiceRequestService;
@@ -20,6 +22,9 @@ import java.sql.SQLException;
 
 @WebServlet("/customer/ticket")
 public class TicketTrackingServlet extends HttpServlet {
+
+    private final AuthService authService =
+            new AuthService();
 
     private final CustomerService customerService =
             new CustomerService();
@@ -117,6 +122,9 @@ public class TicketTrackingServlet extends HttpServlet {
                 return;
             }
 
+            User user =
+                    authService.getUserById(userId);
+
             Product product =
                     productService.getProduct(
                             serviceRequest.getProductId(),
@@ -154,6 +162,11 @@ public class TicketTrackingServlet extends HttpServlet {
             request.setAttribute(
                     "customer",
                     customer
+            );
+
+            request.setAttribute(
+                    "user",
+                    user
             );
 
             request.getRequestDispatcher(

@@ -1,23 +1,44 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ page import="com.servicetrack.model.Ticket" %>
-<%@ page import="com.servicetrack.model.ServiceRequest" %>
-<%@ page import="com.servicetrack.model.Product" %>
 <%@ page import="com.servicetrack.model.Customer" %>
+<%@ page import="com.servicetrack.model.Product" %>
+<%@ page import="com.servicetrack.model.ServiceRequest" %>
+<%@ page import="com.servicetrack.model.Ticket" %>
+<%@ page import="com.servicetrack.model.User" %>
+
+<%
+    Ticket ticket =
+            (Ticket) request.getAttribute("ticket");
+
+    ServiceRequest serviceRequest =
+            (ServiceRequest) request.getAttribute("serviceRequest");
+
+    Product product =
+            (Product) request.getAttribute("product");
+
+    Customer customer =
+            (Customer) request.getAttribute("customer");
+
+    User user =
+            (User) request.getAttribute("user");
+
+    String error =
+            (String) request.getAttribute("error");
+%>
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Ticket Tracking</title>
+    <title>Ticket Tracking - ServiceTrack</title>
 </head>
 
 <body>
 
-<h2>Ticket Tracking</h2>
+<h1>ServiceTrack</h1>
+
+<h2>Service Request Tracking</h2>
 
 <%
-    String error = (String) request.getAttribute("error");
-
     if (error != null) {
 %>
 
@@ -26,27 +47,14 @@
     </p>
 
 <%
-    } else {
-
-        Ticket ticket =
-                (Ticket) request.getAttribute("ticket");
-
-        ServiceRequest serviceRequest =
-                (ServiceRequest) request.getAttribute("serviceRequest");
-
-        Product product =
-                (Product) request.getAttribute("product");
-
-        Customer customer =
-                (Customer) request.getAttribute("customer");
-
-        if (ticket != null
-                && serviceRequest != null
-                && product != null
-                && customer != null) {
+    } else if (ticket != null
+            && serviceRequest != null
+            && product != null
+            && customer != null
+            && user != null) {
 %>
 
-    <h3>Ticket Information</h3>
+    <h3>Ticket Details</h3>
 
     <table border="1" cellpadding="8" cellspacing="0">
 
@@ -72,31 +80,60 @@
         </tr>
 
         <tr>
-            <th>Created At</th>
+            <th>Customer Name</th>
             <td>
-                <%= ticket.getCreatedAt() %>
+                <%= user.getFullName() %>
             </td>
         </tr>
 
         <tr>
-            <th>Updated At</th>
+            <th>Username</th>
             <td>
-                <%= ticket.getUpdatedAt() %>
+                <%= user.getUsername() %>
             </td>
         </tr>
 
-    </table>
-
-    <br>
-
-    <h3>Service Request Information</h3>
-
-    <table border="1" cellpadding="8" cellspacing="0">
+        <tr>
+            <th>Email</th>
+            <td>
+                <%= user.getEmail() %>
+            </td>
+        </tr>
 
         <tr>
-            <th>Service Request ID</th>
+            <th>Phone</th>
             <td>
-                <%= serviceRequest.getServiceRequestId() %>
+                <%= user.getPhone() != null
+                        ? user.getPhone()
+                        : "Not provided" %>
+            </td>
+        </tr>
+
+        <tr>
+            <th>Product ID</th>
+            <td>
+                <%= product.getProductId() %>
+            </td>
+        </tr>
+
+        <tr>
+            <th>Brand</th>
+            <td>
+                <%= product.getBrand() %>
+            </td>
+        </tr>
+
+        <tr>
+            <th>Model</th>
+            <td>
+                <%= product.getModelNumber() %>
+            </td>
+        </tr>
+
+        <tr>
+            <th>Serial Number</th>
+            <td>
+                <%= product.getSerialNumber() %>
             </td>
         </tr>
 
@@ -114,104 +151,40 @@
             </td>
         </tr>
 
-    </table>
-
-    <br>
-
-    <h3>Product Information</h3>
-
-    <table border="1" cellpadding="8" cellspacing="0">
-
         <tr>
-            <th>Product ID</th>
+            <th>Last Updated</th>
             <td>
-                <%= product.getProductId() %>
-            </td>
-        </tr>
-
-        <tr>
-            <th>Product Name</th>
-            <td>
-                <%= product.getProductName() %>
-            </td>
-        </tr>
-
-        <tr>
-            <th>Brand</th>
-            <td>
-                <%= product.getBrand() %>
-            </td>
-        </tr>
-
-        <tr>
-            <th>Model Number</th>
-            <td>
-                <%= product.getModelNumber() != null
-                        ? product.getModelNumber()
-                        : "-" %>
-            </td>
-        </tr>
-
-        <tr>
-            <th>Serial Number</th>
-            <td>
-                <%= product.getSerialNumber() %>
-            </td>
-        </tr>
-
-        <tr>
-            <th>Purchase Date</th>
-            <td>
-                <%= product.getPurchaseDate() %>
-            </td>
-        </tr>
-
-    </table>
-
-    <br>
-
-    <h3>Customer Information</h3>
-
-    <table border="1" cellpadding="8" cellspacing="0">
-
-        <tr>
-            <th>Customer ID</th>
-            <td>
-                <%= customer.getCustomerId() %>
-            </td>
-        </tr>
-
-        <tr>
-            <th>Customer Name</th>
-            <td>
-                <%= customer.getFullName() %>
+                <%= serviceRequest.getUpdatedAt() %>
             </td>
         </tr>
 
     </table>
 
 <%
-        } else {
+    } else {
 %>
 
-    <p>Ticket tracking information is not available.</p>
+    <p>
+        Ticket information is not available.
+    </p>
 
 <%
-        }
     }
 %>
 
 <br>
 
-<a href="<%= request.getContextPath() %>/customer/service-requests">
-    Back to My Service Requests
-</a>
+<p>
+    <a href="<%= request.getContextPath() %>/customer/">
+        Back to Customer Dashboard
+    </a>
+</p>
 
-<br><br>
-
-<a href="<%= request.getContextPath() %>/customer">
-    Back to Customer Dashboard
-</a>
+<p>
+    <a href="<%= request.getContextPath() %>/logout">
+        Logout
+    </a>
+</p>
 
 </body>
 </html>

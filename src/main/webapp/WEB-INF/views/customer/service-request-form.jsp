@@ -18,7 +18,9 @@
 
     if (error != null) {
 %>
+
     <p style="color:red;"><%= error %></p>
+
 <%
     }
 
@@ -58,7 +60,7 @@
 
                 <option value="<%= product.getProductId() %>">
                     <%= product.getBrand() %>
-                    <%= product.getModel() %>
+                    <%= product.getModelNumber() %>
                     -
                     <%= product.getSerialNumber() %>
                 </option>
@@ -76,6 +78,7 @@
         <label for="complaintDescription">
             Complaint Description:
         </label>
+
         <br>
 
         <textarea id="complaintDescription"

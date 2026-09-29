@@ -53,13 +53,24 @@ public class CustomerHomeServlet extends HttpServlet {
                         Session authentication is working.
                     </p>
 
-                    <a href="%s/logout">Logout</a>
+                    <p>
+                        <a href="%s/customer/profile">
+                            My Profile
+                        </a>
+                    </p>
+
+                    <p>
+                        <a href="%s/logout">
+                            Logout
+                        </a>
+                    </p>
 
                 </body>
                 </html>
                 """.formatted(
                 fullName,
                 username,
+                request.getContextPath(),
                 request.getContextPath()
         ));
     }
