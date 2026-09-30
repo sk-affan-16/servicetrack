@@ -1,8 +1,7 @@
 package com.servicetrack.controller;
 
-import com.servicetrack.model.Customer;
-import com.servicetrack.service.CustomerService;
-
+import com.servicetrack.model.Ticket;
+import com.servicetrack.service.TicketService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -12,16 +11,13 @@ import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.List;
 
-@WebServlet("/customer/")
-public class CustomerHomeServlet extends HttpServlet {
+@WebServlet("/technician/tickets")
+public class TechnicianTicketsServlet extends HttpServlet {
 
-    private CustomerService customerService;
-
-    @Override
-    public void init() {
-        customerService = new CustomerService();
-    }
+    private final TicketService ticketService =
+            new TicketService();
 
     @Override
     protected void doGet(
@@ -29,7 +25,8 @@ public class CustomerHomeServlet extends HttpServlet {
             HttpServletResponse response)
             throws ServletException, IOException {
 
-        HttpSession session = request.getSession(false);
+        HttpSession session =
+                request.getSession(false);
 
         if (session == null) {
             response.sendRedirect(
@@ -38,10 +35,10 @@ public class CustomerHomeServlet extends HttpServlet {
             return;
         }
 
-        Long userId =
+        Long technicianId =
                 (Long) session.getAttribute("userId");
 
-        if (userId == null) {
+        if (technicianId == null) {
             response.sendRedirect(
                     request.getContextPath() + "/login"
             );
@@ -50,30 +47,26 @@ public class CustomerHomeServlet extends HttpServlet {
 
         try {
 
-            Customer customer =
-                    customerService.getCustomerByUserId(userId);
+            List<Ticket> tickets =
+                    ticketService.getTicketsByTechnician(
+                            technicianId
+                    );
 
             request.setAttribute(
-                    "customer",
-                    customer
+                    "tickets",
+                    tickets
             );
 
             request.getRequestDispatcher(
-                    "/WEB-INF/views/customer-home.jsp"
+                    "/WEB-INF/views/technician/tickets.jsp"
             ).forward(request, response);
 
         } catch (SQLException e) {
 
-            log("Unable to load customer profile.", e);
-
-            request.setAttribute(
-                    "error",
-                    "Unable to load customer profile."
+            throw new ServletException(
+                    "Unable to load technician tickets.",
+                    e
             );
-
-            request.getRequestDispatcher(
-                    "/WEB-INF/views/customer-home.jsp"
-            ).forward(request, response);
         }
     }
 }

@@ -1,8 +1,7 @@
 package com.servicetrack.controller;
 
-import com.servicetrack.model.Customer;
-import com.servicetrack.service.CustomerService;
-
+import com.servicetrack.model.Product;
+import com.servicetrack.service.ProductService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -12,16 +11,13 @@ import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.List;
 
-@WebServlet("/customer/")
-public class CustomerHomeServlet extends HttpServlet {
+@WebServlet("/customer/service-request/new")
+public class CreateServiceRequestFormServlet extends HttpServlet {
 
-    private CustomerService customerService;
-
-    @Override
-    public void init() {
-        customerService = new CustomerService();
-    }
+    private final ProductService productService =
+            new ProductService();
 
     @Override
     protected void doGet(
@@ -29,7 +25,8 @@ public class CustomerHomeServlet extends HttpServlet {
             HttpServletResponse response)
             throws ServletException, IOException {
 
-        HttpSession session = request.getSession(false);
+        HttpSession session =
+                request.getSession(false);
 
         if (session == null) {
             response.sendRedirect(
@@ -50,29 +47,36 @@ public class CustomerHomeServlet extends HttpServlet {
 
         try {
 
-            Customer customer =
-                    customerService.getCustomerByUserId(userId);
+            List<Product> products =
+                    productService.getCustomerProducts(
+                            userId
+                    );
 
             request.setAttribute(
-                    "customer",
-                    customer
+                    "products",
+                    products
             );
 
             request.getRequestDispatcher(
-                    "/WEB-INF/views/customer-home.jsp"
+                    "/WEB-INF/views/customer/service-request-form.jsp"
             ).forward(request, response);
 
         } catch (SQLException e) {
 
-            log("Unable to load customer profile.", e);
+            throw new ServletException(
+                    "Unable to load customer products.",
+                    e
+            );
+
+        } catch (IllegalArgumentException e) {
 
             request.setAttribute(
                     "error",
-                    "Unable to load customer profile."
+                    e.getMessage()
             );
 
             request.getRequestDispatcher(
-                    "/WEB-INF/views/customer-home.jsp"
+                    "/WEB-INF/views/customer/service-request-form.jsp"
             ).forward(request, response);
         }
     }
