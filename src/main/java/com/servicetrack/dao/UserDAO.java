@@ -28,6 +28,17 @@ public class UserDAO {
                     "FROM users " +
                     "WHERE email = ?";
 
+    private static final String FIND_BY_ID_SQL =
+            "SELECT user_id, full_name, email, phone, username, " +
+                    "password_hash, role, status, created_at, updated_at " +
+                    "FROM users " +
+                    "WHERE user_id = ?";
+
+    private static final String UPDATE_PROFILE_SQL =
+            "UPDATE users " +
+                    "SET full_name = ?, email = ?, phone = ? " +
+                    "WHERE user_id = ?";
+
     public User findByUsername(String username) throws SQLException {
 
         try (Connection connection = DBConnection.getConnection();
@@ -54,6 +65,25 @@ public class UserDAO {
                      connection.prepareStatement(FIND_BY_EMAIL_SQL)) {
 
             statement.setString(1, email);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+
+                if (resultSet.next()) {
+                    return mapUser(resultSet);
+                }
+
+                return null;
+            }
+        }
+    }
+
+    public User findById(Long userId) throws SQLException {
+
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement =
+                     connection.prepareStatement(FIND_BY_ID_SQL)) {
+
+            statement.setLong(1, userId);
 
             try (ResultSet resultSet = statement.executeQuery()) {
 
@@ -95,11 +125,31 @@ public class UserDAO {
                     user.setUserId(generatedKeys.getLong(1));
                 } else {
                     throw new SQLException(
-                            "Creating user failed: no ID obtained.");
+                            "Creating user failed: no ID obtained."
+                    );
                 }
             }
 
             return user;
+        }
+    }
+
+    public boolean updateProfile(
+            Long userId,
+            String fullName,
+            String email,
+            String phone) throws SQLException {
+
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement =
+                     connection.prepareStatement(UPDATE_PROFILE_SQL)) {
+
+            statement.setString(1, fullName);
+            statement.setString(2, email);
+            statement.setString(3, phone);
+            statement.setLong(4, userId);
+
+            return statement.executeUpdate() == 1;
         }
     }
 
