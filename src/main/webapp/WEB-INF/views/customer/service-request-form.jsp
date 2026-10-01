@@ -3,7 +3,8 @@
 <%@ page import="com.servicetrack.model.Product" %>
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Raise Service Request</title>
@@ -19,7 +20,9 @@
     if (error != null) {
 %>
 
-    <p style="color:red;"><%= error %></p>
+<p style="color:red;">
+    <%= error %>
+</p>
 
 <%
     }
@@ -32,38 +35,46 @@
     if (products == null || products.isEmpty()) {
 %>
 
-    <p>You have no registered products.</p>
+<p>
+    You have no registered products.
+</p>
 
-    <a href="<%= request.getContextPath() %>/customer">
+<p>
+    <a href="<%= request.getContextPath() %>/customer/">
         Back to Customer Dashboard
     </a>
+</p>
 
 <%
-    } else {
+} else {
 %>
 
 <form method="post"
       action="<%= request.getContextPath() %>/customer/service-request/create">
 
     <div>
-        <label for="productId">Select Product:</label>
+        <label for="productId">
+            Select Product:
+        </label>
 
         <select id="productId"
                 name="productId"
                 required>
 
-            <option value="">-- Select Product --</option>
+            <option value="">
+                -- Select Product --
+            </option>
 
             <%
                 for (Product product : products) {
             %>
 
-                <option value="<%= product.getProductId() %>">
-                    <%= product.getBrand() %>
-                    <%= product.getModelNumber() %>
-                    -
-                    <%= product.getSerialNumber() %>
-                </option>
+            <option value="<%= product.getProductId() %>">
+                <%= product.getBrand() %>
+                <%= product.getModelNumber() %>
+                -
+                <%= product.getSerialNumber() %>
+            </option>
 
             <%
                 }
@@ -99,13 +110,16 @@
 
 <br>
 
-<a href="<%= request.getContextPath() %>/customer">
-    Back to Customer Dashboard
-</a>
+<p>
+    <a href="<%= request.getContextPath() %>/customer/">
+        Back to Customer Dashboard
+    </a>
+</p>
 
 <%
     }
 %>
 
 </body>
+
 </html>

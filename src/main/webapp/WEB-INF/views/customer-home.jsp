@@ -102,6 +102,12 @@
     </a>
 </p>
 
+<p>
+    <a href="<%= request.getContextPath() %>/customer/service-request/new">
+        Raise Service Request
+    </a>
+</p>
+
 <hr>
 
 <p>
