@@ -25,166 +25,156 @@
             (String) request.getAttribute("error");
 %>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Ticket Tracking - ServiceTrack</title>
-</head>
+<div class="ticket-tracking-page">
 
-<body>
+    <div class="ticket-page-heading">
+        <div>
+            <h2>Service Request Tracking</h2>
+            <p>View your ticket, product and service request details.</p>
+        </div>
 
-<h1>ServiceTrack</h1>
+        <a class="ticket-back-button"
+           href="<%= request.getContextPath() %>/customer/service-requests">
+            Back to Requests
+        </a>
+    </div>
 
-<h2>Service Request Tracking</h2>
+    <% if (error != null) { %>
 
-<%
-    if (error != null) {
-%>
+    <div class="ticket-error">
+        <strong>Unable to display ticket</strong>
+        <p><%= error %></p>
+    </div>
 
-    <p style="color: red;">
-        <%= error %>
-    </p>
-
-<%
-    } else if (ticket != null
+    <% } else if (ticket != null
             && serviceRequest != null
             && product != null
             && customer != null
-            && user != null) {
-%>
+            && user != null) { %>
 
-    <h3>Ticket Details</h3>
+    <div class="ticket-summary-card">
 
-    <table border="1" cellpadding="8" cellspacing="0">
+        <div>
+            <span class="ticket-summary-label">Ticket Number</span>
+            <h3><%= ticket.getTicketNumber() %></h3>
+        </div>
 
-        <tr>
-            <th>Ticket ID</th>
-            <td>
-                <%= ticket.getTicketId() %>
-            </td>
-        </tr>
+        <div class="ticket-status">
+            <span class="ticket-summary-label">Current Status</span>
+            <span class="ticket-status-value">
+                    <%= ticket.getStatus() %>
+                </span>
+        </div>
 
-        <tr>
-            <th>Ticket Number</th>
-            <td>
-                <%= ticket.getTicketNumber() %>
-            </td>
-        </tr>
+    </div>
 
-        <tr>
-            <th>Status</th>
-            <td>
-                <%= ticket.getStatus() %>
-            </td>
-        </tr>
+    <div class="ticket-details-grid">
 
-        <tr>
-            <th>Customer Name</th>
-            <td>
-                <%= user.getFullName() %>
-            </td>
-        </tr>
+        <section class="ticket-detail-card">
 
-        <tr>
-            <th>Username</th>
-            <td>
-                <%= user.getUsername() %>
-            </td>
-        </tr>
+            <h3>Ticket Details</h3>
 
-        <tr>
-            <th>Email</th>
-            <td>
-                <%= user.getEmail() %>
-            </td>
-        </tr>
+            <div class="ticket-detail-row">
+                <span>Ticket ID</span>
+                <strong><%= ticket.getTicketId() %></strong>
+            </div>
 
-        <tr>
-            <th>Phone</th>
-            <td>
-                <%= user.getPhone() != null
-                        ? user.getPhone()
-                        : "Not provided" %>
-            </td>
-        </tr>
+            <div class="ticket-detail-row">
+                <span>Ticket Number</span>
+                <strong><%= ticket.getTicketNumber() %></strong>
+            </div>
 
-        <tr>
-            <th>Product ID</th>
-            <td>
-                <%= product.getProductId() %>
-            </td>
-        </tr>
+            <div class="ticket-detail-row">
+                <span>Status</span>
+                <strong><%= ticket.getStatus() %></strong>
+            </div>
 
-        <tr>
-            <th>Brand</th>
-            <td>
-                <%= product.getBrand() %>
-            </td>
-        </tr>
+            <div class="ticket-detail-row">
+                <span>Created At</span>
+                <strong><%= serviceRequest.getCreatedAt() %></strong>
+            </div>
 
-        <tr>
-            <th>Model</th>
-            <td>
-                <%= product.getModelNumber() %>
-            </td>
-        </tr>
+            <div class="ticket-detail-row">
+                <span>Last Updated</span>
+                <strong><%= serviceRequest.getUpdatedAt() %></strong>
+            </div>
 
-        <tr>
-            <th>Serial Number</th>
-            <td>
-                <%= product.getSerialNumber() %>
-            </td>
-        </tr>
+        </section>
 
-        <tr>
-            <th>Complaint</th>
-            <td>
+        <section class="ticket-detail-card">
+
+            <h3>Customer Details</h3>
+
+            <div class="ticket-detail-row">
+                <span>Customer Name</span>
+                <strong><%= user.getFullName() %></strong>
+            </div>
+
+            <div class="ticket-detail-row">
+                <span>Username</span>
+                <strong><%= user.getUsername() %></strong>
+            </div>
+
+            <div class="ticket-detail-row">
+                <span>Email</span>
+                <strong><%= user.getEmail() %></strong>
+            </div>
+
+            <div class="ticket-detail-row">
+                <span>Phone</span>
+                <strong>
+                    <%= user.getPhone() != null
+                            ? user.getPhone()
+                            : "Not provided" %>
+                </strong>
+            </div>
+
+        </section>
+
+        <section class="ticket-detail-card">
+
+            <h3>Product Details</h3>
+
+            <div class="ticket-detail-row">
+                <span>Product ID</span>
+                <strong><%= product.getProductId() %></strong>
+            </div>
+
+            <div class="ticket-detail-row">
+                <span>Brand</span>
+                <strong><%= product.getBrand() %></strong>
+            </div>
+
+            <div class="ticket-detail-row">
+                <span>Model</span>
+                <strong><%= product.getModelNumber() %></strong>
+            </div>
+
+            <div class="ticket-detail-row">
+                <span>Serial Number</span>
+                <strong><%= product.getSerialNumber() %></strong>
+            </div>
+
+        </section>
+
+        <section class="ticket-detail-card">
+
+            <h3>Complaint Details</h3>
+
+            <div class="ticket-complaint">
                 <%= serviceRequest.getComplaintDescription() %>
-            </td>
-        </tr>
+            </div>
 
-        <tr>
-            <th>Created At</th>
-            <td>
-                <%= serviceRequest.getCreatedAt() %>
-            </td>
-        </tr>
+        </section>
 
-        <tr>
-            <th>Last Updated</th>
-            <td>
-                <%= serviceRequest.getUpdatedAt() %>
-            </td>
-        </tr>
+    </div>
 
-    </table>
+    <% } else { %>
 
-<%
-    } else {
-%>
-
-    <p>
+    <div class="ticket-error">
         Ticket information is not available.
-    </p>
+    </div>
 
-<%
-    }
-%>
+    <% } %>
 
-<br>
-
-<p>
-    <a href="<%= request.getContextPath() %>/customer/">
-        Back to Customer Dashboard
-    </a>
-</p>
-
-<p>
-    <a href="<%= request.getContextPath() %>/logout">
-        Logout
-    </a>
-</p>
-
-</body>
-</html>
+</div>

@@ -23,6 +23,12 @@ public class WarrantyServlet extends HttpServlet {
     private WarrantyService warrantyService;
     private ProductService productService;
 
+    private static final String MASTER_PAGE =
+            "/WEB-INF/views/common/master.jsp";
+
+    private static final String WARRANTY_PAGE =
+            "/WEB-INF/views/customer-warranty.jsp";
+
     @Override
     public void init() {
         warrantyService = new WarrantyService();
@@ -35,8 +41,7 @@ public class WarrantyServlet extends HttpServlet {
             HttpServletResponse response)
             throws ServletException, IOException {
 
-        HttpSession session =
-                request.getSession(false);
+        HttpSession session = request.getSession(false);
 
         if (session == null) {
             response.sendRedirect(
@@ -54,6 +59,8 @@ public class WarrantyServlet extends HttpServlet {
             );
             return;
         }
+
+        request.setAttribute("contentPage", WARRANTY_PAGE);
 
         try {
 
@@ -84,9 +91,8 @@ public class WarrantyServlet extends HttpServlet {
                     productWarranties
             );
 
-            request.getRequestDispatcher(
-                    "/WEB-INF/views/customer-warranty.jsp"
-            ).forward(request, response);
+            request.getRequestDispatcher(MASTER_PAGE)
+                    .forward(request, response);
 
         } catch (SQLException e) {
 
@@ -97,9 +103,8 @@ public class WarrantyServlet extends HttpServlet {
                     "Unable to load warranty information."
             );
 
-            request.getRequestDispatcher(
-                    "/WEB-INF/views/customer-warranty.jsp"
-            ).forward(request, response);
+            request.getRequestDispatcher(MASTER_PAGE)
+                    .forward(request, response);
         }
     }
 

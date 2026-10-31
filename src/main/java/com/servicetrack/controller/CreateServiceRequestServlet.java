@@ -1,8 +1,10 @@
 package com.servicetrack.controller;
 
+import com.servicetrack.model.Product;
 import com.servicetrack.model.Ticket;
 import com.servicetrack.service.ProductService;
 import com.servicetrack.service.ServiceRequestService;
+
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -12,6 +14,7 @@ import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.List;
 
 @WebServlet("/customer/service-request/create")
 public class CreateServiceRequestServlet extends HttpServlet {
@@ -22,14 +25,21 @@ public class CreateServiceRequestServlet extends HttpServlet {
     private final ServiceRequestService serviceRequestService =
             new ServiceRequestService();
 
+    private static final String MASTER_PAGE =
+            "/WEB-INF/views/common/master.jsp";
+
+    private static final String FORM_PAGE =
+            "/WEB-INF/views/customer/service-request-form.jsp";
+
     @Override
     protected void doPost(
             HttpServletRequest request,
             HttpServletResponse response)
             throws ServletException, IOException {
 
-        HttpSession session =
-                request.getSession(false);
+        request.setCharacterEncoding("UTF-8");
+
+        HttpSession session = request.getSession(false);
 
         if (session == null) {
             response.sendRedirect(
@@ -56,13 +66,18 @@ public class CreateServiceRequestServlet extends HttpServlet {
 
         try {
 
+            if (productIdParameter == null
+                    || productIdParameter.trim().isEmpty()) {
+
+                throw new IllegalArgumentException(
+                        "Please select a product."
+                );
+            }
+
             Long productId =
                     Long.parseLong(productIdParameter);
 
-            /*
-             * Verify that the selected product exists
-             * and belongs to the logged-in customer.
-             */
+            // Verify product ownership.
             if (productService.getProduct(productId, userId) == null) {
 
                 throw new IllegalArgumentException(
@@ -70,16 +85,14 @@ public class CreateServiceRequestServlet extends HttpServlet {
                 );
             }
 
-            /*
-             * Create service request and ticket
-             * inside one database transaction.
-             */
+            // Create service request and ticket.
             Ticket ticket =
                     serviceRequestService.createServiceRequestWithTicket(
                             productId,
                             complaintDescription
                     );
 
+            // Redirect to ticket tracking page.
             response.sendRedirect(
                     request.getContextPath()
                             + "/customer/ticket?ticketId="
@@ -88,25 +101,21 @@ public class CreateServiceRequestServlet extends HttpServlet {
 
         } catch (NumberFormatException e) {
 
-            request.setAttribute(
-                    "error",
+            forwardWithError(
+                    request,
+                    response,
+                    userId,
                     "Invalid product selected."
             );
 
-            request.getRequestDispatcher(
-                    "/WEB-INF/views/customer/service-request-form.jsp"
-            ).forward(request, response);
-
         } catch (IllegalArgumentException e) {
 
-            request.setAttribute(
-                    "error",
+            forwardWithError(
+                    request,
+                    response,
+                    userId,
                     e.getMessage()
             );
-
-            request.getRequestDispatcher(
-                    "/WEB-INF/views/customer/service-request-form.jsp"
-            ).forward(request, response);
 
         } catch (SQLException e) {
 
@@ -115,5 +124,36 @@ public class CreateServiceRequestServlet extends HttpServlet {
                     e
             );
         }
+    }
+
+    private void forwardWithError(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            Long userId,
+            String error)
+            throws ServletException, IOException {
+
+        request.setAttribute("contentPage", FORM_PAGE);
+        request.setAttribute("error", error);
+
+        try {
+
+            List<Product> products =
+                    productService.getCustomerProducts(userId);
+
+            request.setAttribute("products", products);
+
+        } catch (SQLException e) {
+
+            log("Unable to reload customer products.", e);
+
+            request.setAttribute(
+                    "error",
+                    "Unable to reload products. Please try again."
+            );
+        }
+
+        request.getRequestDispatcher(MASTER_PAGE)
+                .forward(request, response);
     }
 }

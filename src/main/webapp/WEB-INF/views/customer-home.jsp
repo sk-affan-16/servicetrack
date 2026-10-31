@@ -4,118 +4,112 @@
 <%
     String fullName = (String) session.getAttribute("fullName");
     String username = (String) session.getAttribute("username");
-    Customer customer = (Customer) request.getAttribute("customer");
+
+    Customer customer =
+            (Customer) request.getAttribute("customer");
+
     String error = (String) request.getAttribute("error");
 %>
 
-<!DOCTYPE html>
-<html lang="en">
+<div class="dashboard-heading">
+    <div>
+        <h1>Customer Dashboard</h1>
+        <p>Manage your products, warranties and service requests.</p>
+    </div>
+</div>
 
-<head>
-    <meta charset="UTF-8">
-    <title>Customer Dashboard - ServiceTrack</title>
-</head>
-
-<body>
-
-<h1>ServiceTrack</h1>
-
-<h2>Customer Dashboard</h2>
-
-<p>
-    Welcome, <%= fullName %>!
-</p>
-
-<p>
-    Username: <%= username %>
-</p>
+<div class="welcome-card">
+    <h2>Welcome, <%= fullName != null ? fullName : username %>!</h2>
+    <p>Your ServiceTrack customer portal is ready.</p>
+</div>
 
 <% if (error != null) { %>
-
-<p style="color:red;">
+<div class="alert-error">
     <%= error %>
-</p>
-
+</div>
 <% } %>
 
-<hr>
+<div class="card">
+    <h3>Customer Profile</h3>
 
-<h3>Customer Profile</h3>
+    <% if (customer == null) { %>
 
-<% if (customer == null) { %>
+    <p>Your customer profile has not been created yet.</p>
 
-<p>
-    Your customer profile has not been created yet.
-</p>
+    <% } else { %>
 
-<% } else { %>
+    <div class="profile-details">
+        <div>
+            <strong>Address</strong>
+            <p><%= customer.getAddress() != null ? customer.getAddress() : "Not provided" %></p>
+        </div>
 
-<p>
-    Address:
-    <%= customer.getAddress() == null
-            ? ""
-            : customer.getAddress() %>
-</p>
+        <div>
+            <strong>City</strong>
+            <p><%= customer.getCity() != null ? customer.getCity() : "Not provided" %></p>
+        </div>
 
-<p>
-    City:
-    <%= customer.getCity() == null
-            ? ""
-            : customer.getCity() %>
-</p>
+        <div>
+            <strong>State</strong>
+            <p><%= customer.getState() != null ? customer.getState() : "Not provided" %></p>
+        </div>
 
-<p>
-    State:
-    <%= customer.getState() == null
-            ? ""
-            : customer.getState() %>
-</p>
+        <div>
+            <strong>Pincode</strong>
+            <p><%= customer.getPincode() != null ? customer.getPincode() : "Not provided" %></p>
+        </div>
+    </div>
 
-<p>
-    Pincode:
-    <%= customer.getPincode() == null
-            ? ""
-            : customer.getPincode() %>
-</p>
+    <% } %>
 
-<% } %>
-
-<hr>
-
-<h3>Customer Services</h3>
-
-<p>
-    <a href="<%= request.getContextPath() %>/customer/profile">
-        Customer Profile
+    <a class="btn"
+       href="<%= request.getContextPath() %>/customer/profile">
+        View Profile
     </a>
-</p>
+</div>
 
-<p>
-    <a href="<%= request.getContextPath() %>/customer/products">
-        My Products
-    </a>
-</p>
+<h2 class="section-heading">Customer Services</h2>
 
-<p>
-    <a href="<%= request.getContextPath() %>/customer/warranty">
-        My Warranty
-    </a>
-</p>
+<div class="service-grid">
 
-<p>
-    <a href="<%= request.getContextPath() %>/customer/service-request/new">
-        Raise Service Request
-    </a>
-</p>
+    <div class="service-card">
+        <div class="service-icon">▣</div>
+        <h3>My Products</h3>
+        <p>View and manage your registered products.</p>
+        <a class="btn"
+           href="<%= request.getContextPath() %>/customer/products">
+            View Products
+        </a>
+    </div>
 
-<hr>
+    <div class="service-card">
+        <div class="service-icon">✓</div>
+        <h3>My Warranty</h3>
+        <p>Check warranty details and product coverage.</p>
+        <a class="btn"
+           href="<%= request.getContextPath() %>/customer/warranty">
+            Check Warranty
+        </a>
+    </div>
 
-<p>
-    <a href="<%= request.getContextPath() %>/logout">
-        Logout
-    </a>
-</p>
+    <div class="service-card">
+        <div class="service-icon">＋</div>
+        <h3>Service Request</h3>
+        <p>Submit a repair or service request for your product.</p>
+        <a class="btn"
+           href="<%= request.getContextPath() %>/customer/service-request/new">
+            Raise Request
+        </a>
+    </div>
 
-</body>
+    <div class="service-card">
+        <div class="service-icon">◷</div>
+        <h3>My Profile</h3>
+        <p>View your personal and contact information.</p>
+        <a class="btn"
+           href="<%= request.getContextPath() %>/customer/profile">
+            View Details
+        </a>
+    </div>
 
-</html>
+</div>

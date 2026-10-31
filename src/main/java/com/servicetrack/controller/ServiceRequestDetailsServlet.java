@@ -6,6 +6,7 @@ import com.servicetrack.model.ServiceRequest;
 import com.servicetrack.service.CustomerService;
 import com.servicetrack.service.ProductService;
 import com.servicetrack.service.ServiceRequestService;
+
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -18,6 +19,12 @@ import java.sql.SQLException;
 
 @WebServlet("/customer/service-request/details")
 public class ServiceRequestDetailsServlet extends HttpServlet {
+
+    private static final String MASTER_PAGE =
+            "/WEB-INF/views/common/master.jsp";
+
+    private static final String DETAILS_PAGE =
+            "/WEB-INF/views/customer/service-request-details.jsp";
 
     private final CustomerService customerService =
             new CustomerService();
@@ -34,8 +41,7 @@ public class ServiceRequestDetailsServlet extends HttpServlet {
             HttpServletResponse response)
             throws ServletException, IOException {
 
-        HttpSession session =
-                request.getSession(false);
+        HttpSession session = request.getSession(false);
 
         if (session == null) {
             response.sendRedirect(
@@ -54,15 +60,23 @@ public class ServiceRequestDetailsServlet extends HttpServlet {
             return;
         }
 
+        request.setAttribute("contentPage", DETAILS_PAGE);
+
         String serviceRequestIdParameter =
                 request.getParameter("serviceRequestId");
 
         try {
 
+            if (serviceRequestIdParameter == null
+                    || serviceRequestIdParameter.trim().isEmpty()) {
+
+                throw new IllegalArgumentException(
+                        "Service request ID is required."
+                );
+            }
+
             Long serviceRequestId =
-                    Long.parseLong(
-                            serviceRequestIdParameter
-                    );
+                    Long.parseLong(serviceRequestIdParameter);
 
             ServiceRequest serviceRequest =
                     serviceRequestService.getServiceRequest(
@@ -70,15 +84,11 @@ public class ServiceRequestDetailsServlet extends HttpServlet {
                     );
 
             if (serviceRequest == null) {
-                request.setAttribute(
-                        "error",
+                forwardWithError(
+                        request,
+                        response,
                         "Service request not found."
                 );
-
-                request.getRequestDispatcher(
-                        "/WEB-INF/views/customer/service-request-details.jsp"
-                ).forward(request, response);
-
                 return;
             }
 
@@ -86,18 +96,15 @@ public class ServiceRequestDetailsServlet extends HttpServlet {
                     customerService.getCustomerByUserId(userId);
 
             if (customer == null) {
-                request.setAttribute(
-                        "error",
+                forwardWithError(
+                        request,
+                        response,
                         "Customer profile not found."
                 );
-
-                request.getRequestDispatcher(
-                        "/WEB-INF/views/customer/service-request-details.jsp"
-                ).forward(request, response);
-
                 return;
             }
 
+            // Verify that this product belongs to logged-in customer.
             Product product =
                     productService.getProduct(
                             serviceRequest.getProductId(),
@@ -105,15 +112,11 @@ public class ServiceRequestDetailsServlet extends HttpServlet {
                     );
 
             if (product == null) {
-                request.setAttribute(
-                        "error",
-                        "Product not found."
+                forwardWithError(
+                        request,
+                        response,
+                        "Service request not found for your account."
                 );
-
-                request.getRequestDispatcher(
-                        "/WEB-INF/views/customer/service-request-details.jsp"
-                ).forward(request, response);
-
                 return;
             }
 
@@ -132,31 +135,24 @@ public class ServiceRequestDetailsServlet extends HttpServlet {
                     customer
             );
 
-            request.getRequestDispatcher(
-                    "/WEB-INF/views/customer/service-request-details.jsp"
-            ).forward(request, response);
+            request.getRequestDispatcher(MASTER_PAGE)
+                    .forward(request, response);
 
         } catch (NumberFormatException e) {
 
-            request.setAttribute(
-                    "error",
+            forwardWithError(
+                    request,
+                    response,
                     "Invalid service request ID."
             );
 
-            request.getRequestDispatcher(
-                    "/WEB-INF/views/customer/service-request-details.jsp"
-            ).forward(request, response);
-
         } catch (IllegalArgumentException e) {
 
-            request.setAttribute(
-                    "error",
+            forwardWithError(
+                    request,
+                    response,
                     e.getMessage()
             );
-
-            request.getRequestDispatcher(
-                    "/WEB-INF/views/customer/service-request-details.jsp"
-            ).forward(request, response);
 
         } catch (SQLException e) {
 
@@ -165,5 +161,18 @@ public class ServiceRequestDetailsServlet extends HttpServlet {
                     e
             );
         }
+    }
+
+    private void forwardWithError(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            String error)
+            throws ServletException, IOException {
+
+        request.setAttribute("contentPage", DETAILS_PAGE);
+        request.setAttribute("error", error);
+
+        request.getRequestDispatcher(MASTER_PAGE)
+                .forward(request, response);
     }
 }

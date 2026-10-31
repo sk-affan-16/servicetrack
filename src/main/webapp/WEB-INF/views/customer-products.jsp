@@ -2,209 +2,190 @@
 <%@ page import="java.util.List" %>
 <%@ page import="com.servicetrack.model.Product" %>
 
-<!DOCTYPE html>
-<html lang="en">
+<%!
+    private String escapeHtml(String value) {
+        if (value == null) {
+            return "";
+        }
 
-<head>
-    <meta charset="UTF-8">
-    <title>My Products - ServiceTrack</title>
-</head>
-
-<body>
-
-<h1>ServiceTrack</h1>
-
-<h2>My Products</h2>
+        return value.replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&#39;");
+    }
+%>
 
 <%
     String error = (String) request.getAttribute("error");
 
-    if (error != null) {
-%>
-
-<p style="color:red;">
-    <%= error %>
-</p>
-
-<%
-    }
-%>
-
-<hr>
-
-<h3>Register New Product</h3>
-
-<form action="<%= request.getContextPath() %>/customer/products"
-      method="post">
-
-    <p>
-        <label for="productName">
-            Product Name:
-        </label>
-
-        <input type="text"
-               id="productName"
-               name="productName"
-               required>
-    </p>
-
-    <p>
-        <label for="brand">
-            Brand:
-        </label>
-
-        <input type="text"
-               id="brand"
-               name="brand"
-               required>
-    </p>
-
-    <p>
-        <label for="modelNumber">
-            Model Number:
-        </label>
-
-        <input type="text"
-               id="modelNumber"
-               name="modelNumber">
-    </p>
-
-    <p>
-        <label for="serialNumber">
-            Serial Number:
-        </label>
-
-        <input type="text"
-               id="serialNumber"
-               name="serialNumber"
-               required>
-    </p>
-
-    <p>
-        <label for="purchaseDate">
-            Purchase Date:
-        </label>
-
-        <input type="date"
-               id="purchaseDate"
-               name="purchaseDate"
-               required>
-    </p>
-
-    <p>
-        <button type="submit">
-            Register Product
-        </button>
-    </p>
-
-</form>
-
-<hr>
-
-<h3>Registered Products</h3>
-
-<%
     List<Product> products =
             (List<Product>) request.getAttribute("products");
 
-    if (products == null || products.isEmpty()) {
+    int productCount = products == null ? 0 : products.size();
+
+    String contextPath = request.getContextPath();
 %>
 
-<p>
-    No products registered yet.
-</p>
+<div class="page-heading">
+    <div>
+        <h1>My Products</h1>
+        <p>Register and manage your electronic products.</p>
+    </div>
+</div>
 
-<%
-} else {
-%>
+<% if (error != null) { %>
+<div class="profile-alert profile-error">
+    <strong>Error:</strong> <%= escapeHtml(error) %>
+</div>
+<% } %>
 
-<table border="1"
-       cellpadding="8"
-       cellspacing="0">
+<div class="products-summary">
+    <div class="products-summary-icon">P</div>
+    <div>
+        <span class="products-summary-label">Registered Products</span>
+        <strong><%= productCount %></strong>
+    </div>
+</div>
 
-    <tr>
-        <th>ID</th>
-        <th>Product Name</th>
-        <th>Brand</th>
-        <th>Model Number</th>
-        <th>Serial Number</th>
-        <th>Purchase Date</th>
-    </tr>
+<div class="products-layout">
 
-    <%
-        for (Product product : products) {
-    %>
+    <!-- Register Product Form -->
+    <section class="products-card">
+        <div class="products-card-heading">
+            <div>
+                <h2>Register New Product</h2>
+                <p>Add a product to your ServiceTrack account.</p>
+            </div>
+        </div>
 
-    <tr>
+        <form action="<%= contextPath %>/customer/products"
+              method="post">
 
-        <td>
-            <%= product.getProductId() %>
-        </td>
+            <div class="profile-field">
+                <label for="productName">Product Name</label>
+                <input type="text"
+                       id="productName"
+                       name="productName"
+                       maxlength="100"
+                       placeholder="Example: Laptop"
+                       required>
+            </div>
 
-        <td>
-            <%= product.getProductName() %>
-        </td>
+            <div class="profile-field">
+                <label for="brand">Brand</label>
+                <input type="text"
+                       id="brand"
+                       name="brand"
+                       maxlength="100"
+                       placeholder="Example: Dell"
+                       required>
+            </div>
 
-        <td>
-            <%= product.getBrand() %>
-        </td>
+            <div class="profile-field">
+                <label for="modelNumber">Model Number</label>
+                <input type="text"
+                       id="modelNumber"
+                       name="modelNumber"
+                       maxlength="100"
+                       placeholder="Enter model number">
+            </div>
 
-        <td>
-            <%= product.getModelNumber() == null
-                    ? "-"
-                    : product.getModelNumber() %>
-        </td>
+            <div class="profile-field">
+                <label for="serialNumber">Serial Number</label>
+                <input type="text"
+                       id="serialNumber"
+                       name="serialNumber"
+                       placeholder="Enter unique serial number"
+                       required>
+            </div>
 
-        <td>
-            <%= product.getSerialNumber() %>
-        </td>
+            <div class="profile-field">
+                <label for="purchaseDate">Purchase Date</label>
+                <input type="date"
+                       id="purchaseDate"
+                       name="purchaseDate"
+                       required>
+            </div>
 
-        <td>
-            <%= product.getPurchaseDate() %>
-        </td>
+            <button type="submit" class="profile-button">
+                + Register Product
+            </button>
+        </form>
+    </section>
 
-    </tr>
+    <!-- Registered Products -->
+    <section class="products-card products-list-card">
+        <div class="products-card-heading">
+            <div>
+                <h2>Registered Products</h2>
+                <p>Products linked to your account.</p>
+            </div>
+            <span class="products-count"><%= productCount %> Total</span>
+        </div>
 
-    <%
-        }
-    %>
+        <% if (products == null || products.isEmpty()) { %>
 
-</table>
+        <div class="products-empty">
+            <div class="products-empty-icon">□</div>
+            <h3>No Products Yet</h3>
+            <p>You haven't registered any products. Use the form to add your first product.</p>
+        </div>
 
-<%
-    }
-%>
+        <% } else { %>
 
-<hr>
+        <div class="products-table-wrapper">
+            <table class="products-table">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Product</th>
+                    <th>Brand</th>
+                    <th>Model</th>
+                    <th>Serial Number</th>
+                    <th>Purchase Date</th>
+                </tr>
+                </thead>
 
-<h3>Customer Services</h3>
+                <tbody>
+                <% for (Product product : products) { %>
+                <tr>
+                    <td><%= product.getProductId() %></td>
+                    <td>
+                        <strong><%= escapeHtml(product.getProductName()) %></strong>
+                    </td>
+                    <td><%= escapeHtml(product.getBrand()) %></td>
+                    <td>
+                        <%= product.getModelNumber() == null
+                                || product.getModelNumber().trim().isEmpty()
+                                ? "-"
+                                : escapeHtml(product.getModelNumber()) %>
+                    </td>
+                    <td><%= escapeHtml(product.getSerialNumber()) %></td>
+                    <td><%= product.getPurchaseDate() == null
+                            ? "-"
+                            : product.getPurchaseDate() %></td>
+                </tr>
+                <% } %>
+                </tbody>
+            </table>
+        </div>
 
-<p>
-    <a href="<%= request.getContextPath() %>/customer/warranty">
+        <% } %>
+    </section>
+
+</div>
+
+<div class="products-shortcuts">
+    <a href="<%= contextPath %>/customer/warranty">
         My Warranty
     </a>
-</p>
 
-<p>
-    <a href="<%= request.getContextPath() %>/customer/profile">
+    <a href="<%= contextPath %>/customer/profile">
         Customer Profile
     </a>
-</p>
 
-<p>
-    <a href="<%= request.getContextPath() %>/customer/">
-        Back to Customer Dashboard
+    <a href="<%= contextPath %>/customer/">
+        ← Back to Dashboard
     </a>
-</p>
-
-<hr>
-
-<p>
-    <a href="<%= request.getContextPath() %>/logout">
-        Logout
-    </a>
-</p>
-
-</body>
-
-</html>
+</div>

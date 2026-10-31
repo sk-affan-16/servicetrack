@@ -10,6 +10,7 @@ import com.servicetrack.service.CustomerService;
 import com.servicetrack.service.ProductService;
 import com.servicetrack.service.ServiceRequestService;
 import com.servicetrack.service.TicketService;
+
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -22,6 +23,12 @@ import java.sql.SQLException;
 
 @WebServlet("/customer/ticket")
 public class TicketTrackingServlet extends HttpServlet {
+
+    private static final String MASTER_PAGE =
+            "/WEB-INF/views/common/master.jsp";
+
+    private static final String TICKET_PAGE =
+            "/WEB-INF/views/customer/ticket-tracking.jsp";
 
     private final AuthService authService =
             new AuthService();
@@ -44,8 +51,7 @@ public class TicketTrackingServlet extends HttpServlet {
             HttpServletResponse response)
             throws ServletException, IOException {
 
-        HttpSession session =
-                request.getSession(false);
+        HttpSession session = request.getSession(false);
 
         if (session == null) {
             response.sendRedirect(
@@ -64,10 +70,20 @@ public class TicketTrackingServlet extends HttpServlet {
             return;
         }
 
+        request.setAttribute("contentPage", TICKET_PAGE);
+
         String ticketIdParameter =
                 request.getParameter("ticketId");
 
         try {
+
+            if (ticketIdParameter == null
+                    || ticketIdParameter.trim().isEmpty()) {
+
+                throw new IllegalArgumentException(
+                        "Ticket ID is required."
+                );
+            }
 
             Long ticketId =
                     Long.parseLong(ticketIdParameter);
@@ -76,15 +92,11 @@ public class TicketTrackingServlet extends HttpServlet {
                     ticketService.getTicket(ticketId);
 
             if (ticket == null) {
-                request.setAttribute(
-                        "error",
+                forwardWithError(
+                        request,
+                        response,
                         "Ticket not found."
                 );
-
-                request.getRequestDispatcher(
-                        "/WEB-INF/views/customer/ticket-tracking.jsp"
-                ).forward(request, response);
-
                 return;
             }
 
@@ -94,37 +106,41 @@ public class TicketTrackingServlet extends HttpServlet {
                     );
 
             if (serviceRequest == null) {
-                request.setAttribute(
-                        "error",
+                forwardWithError(
+                        request,
+                        response,
                         "Service request not found."
                 );
-
-                request.getRequestDispatcher(
-                        "/WEB-INF/views/customer/ticket-tracking.jsp"
-                ).forward(request, response);
-
                 return;
             }
 
+            // Verify customer profile.
             Customer customer =
                     customerService.getCustomerByUserId(userId);
 
             if (customer == null) {
-                request.setAttribute(
-                        "error",
+                forwardWithError(
+                        request,
+                        response,
                         "Customer profile not found."
                 );
-
-                request.getRequestDispatcher(
-                        "/WEB-INF/views/customer/ticket-tracking.jsp"
-                ).forward(request, response);
-
                 return;
             }
 
+            // Load logged-in customer details.
             User user =
                     authService.getUserById(userId);
 
+            if (user == null) {
+                forwardWithError(
+                        request,
+                        response,
+                        "User information not found."
+                );
+                return;
+            }
+
+            // Verify that the product belongs to this customer.
             Product product =
                     productService.getProduct(
                             serviceRequest.getProductId(),
@@ -132,68 +148,38 @@ public class TicketTrackingServlet extends HttpServlet {
                     );
 
             if (product == null) {
-                request.setAttribute(
-                        "error",
-                        "Product not found."
+                forwardWithError(
+                        request,
+                        response,
+                        "Ticket information not found for your account."
                 );
-
-                request.getRequestDispatcher(
-                        "/WEB-INF/views/customer/ticket-tracking.jsp"
-                ).forward(request, response);
-
                 return;
             }
 
-            request.setAttribute(
-                    "ticket",
-                    ticket
-            );
+            request.setAttribute("ticket", ticket);
+            request.setAttribute("serviceRequest", serviceRequest);
+            request.setAttribute("product", product);
+            request.setAttribute("customer", customer);
+            request.setAttribute("user", user);
 
-            request.setAttribute(
-                    "serviceRequest",
-                    serviceRequest
-            );
-
-            request.setAttribute(
-                    "product",
-                    product
-            );
-
-            request.setAttribute(
-                    "customer",
-                    customer
-            );
-
-            request.setAttribute(
-                    "user",
-                    user
-            );
-
-            request.getRequestDispatcher(
-                    "/WEB-INF/views/customer/ticket-tracking.jsp"
-            ).forward(request, response);
+            request.getRequestDispatcher(MASTER_PAGE)
+                    .forward(request, response);
 
         } catch (NumberFormatException e) {
 
-            request.setAttribute(
-                    "error",
+            forwardWithError(
+                    request,
+                    response,
                     "Invalid ticket ID."
             );
 
-            request.getRequestDispatcher(
-                    "/WEB-INF/views/customer/ticket-tracking.jsp"
-            ).forward(request, response);
-
         } catch (IllegalArgumentException e) {
 
-            request.setAttribute(
-                    "error",
+            forwardWithError(
+                    request,
+                    response,
                     e.getMessage()
             );
-
-            request.getRequestDispatcher(
-                    "/WEB-INF/views/customer/ticket-tracking.jsp"
-            ).forward(request, response);
 
         } catch (SQLException e) {
 
@@ -202,5 +188,18 @@ public class TicketTrackingServlet extends HttpServlet {
                     e
             );
         }
+    }
+
+    private void forwardWithError(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            String error)
+            throws ServletException, IOException {
+
+        request.setAttribute("contentPage", TICKET_PAGE);
+        request.setAttribute("error", error);
+
+        request.getRequestDispatcher(MASTER_PAGE)
+                .forward(request, response);
     }
 }
