@@ -1,7 +1,9 @@
 package com.servicetrack.controller;
 
 import com.servicetrack.model.Repair;
+import com.servicetrack.model.Ticket;
 import com.servicetrack.service.RepairService;
+import com.servicetrack.service.TicketService;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -18,10 +20,12 @@ import java.util.List;
 public class TechnicianRepairServlet extends HttpServlet {
 
     private RepairService repairService;
+    private TicketService ticketService;
 
     @Override
     public void init() {
         repairService = new RepairService();
+        ticketService = new TicketService();
     }
 
     @Override
@@ -57,6 +61,20 @@ public class TechnicianRepairServlet extends HttpServlet {
 
             Long ticketId =
                     Long.parseLong(ticketIdParameter);
+
+            Long technicianId =
+                    (Long) session.getAttribute("userId");
+
+            if (!isTicketAssignedToTechnician(
+                    ticketId,
+                    technicianId)) {
+
+                response.sendError(
+                        HttpServletResponse.SC_FORBIDDEN,
+                        "You are not authorized to access this ticket."
+                );
+                return;
+            }
 
             List<Repair> repairs =
                     repairService.getRepairsByTicket(
@@ -113,10 +131,40 @@ public class TechnicianRepairServlet extends HttpServlet {
 
         request.setCharacterEncoding("UTF-8");
 
-        String action =
-                request.getParameter("action");
+        String ticketIdParameter =
+                request.getParameter("ticketId");
 
         try {
+
+            if (ticketIdParameter == null ||
+                    ticketIdParameter.isBlank()) {
+
+                response.sendError(
+                        HttpServletResponse.SC_BAD_REQUEST,
+                        "Ticket ID is required."
+                );
+                return;
+            }
+
+            Long ticketId =
+                    Long.parseLong(ticketIdParameter);
+
+            Long technicianId =
+                    (Long) session.getAttribute("userId");
+
+            if (!isTicketAssignedToTechnician(
+                    ticketId,
+                    technicianId)) {
+
+                response.sendError(
+                        HttpServletResponse.SC_FORBIDDEN,
+                        "You are not authorized to modify this ticket."
+                );
+                return;
+            }
+
+            String action =
+                    request.getParameter("action");
 
             if ("create".equals(action)) {
 
@@ -124,7 +172,7 @@ public class TechnicianRepairServlet extends HttpServlet {
 
             } else if ("update".equals(action)) {
 
-                updateRepair(request);
+                updateRepair(request, ticketId);
 
             } else {
 
@@ -134,9 +182,6 @@ public class TechnicianRepairServlet extends HttpServlet {
                 );
                 return;
             }
-
-            String ticketId =
-                    request.getParameter("ticketId");
 
             response.sendRedirect(
                     request.getContextPath()
@@ -202,16 +247,14 @@ public class TechnicianRepairServlet extends HttpServlet {
     }
 
     private void updateRepair(
-            HttpServletRequest request)
+            HttpServletRequest request,
+            Long ticketId)
             throws SQLException {
 
         Long repairId =
                 Long.parseLong(
                         request.getParameter("repairId")
                 );
-
-        String ticketId =
-                request.getParameter("ticketId");
 
         String diagnosis =
                 request.getParameter("diagnosis");
@@ -222,16 +265,29 @@ public class TechnicianRepairServlet extends HttpServlet {
         String repairStatus =
                 request.getParameter("repairStatus");
 
+        Repair existingRepair =
+                repairService.getRepair(repairId);
+
+        if (existingRepair == null) {
+            throw new IllegalArgumentException(
+                    "Repair not found."
+            );
+        }
+
+        if (existingRepair.getTicketId() == null
+                || !existingRepair.getTicketId()
+                .equals(ticketId)) {
+
+            throw new IllegalArgumentException(
+                    "Repair does not belong to this ticket."
+            );
+        }
+
         repairService.updateRepair(
                 repairId,
                 diagnosis,
                 repairNotes,
                 repairStatus
-        );
-
-        request.setAttribute(
-                "ticketId",
-                ticketId
         );
     }
 
@@ -293,6 +349,27 @@ public class TechnicianRepairServlet extends HttpServlet {
                     "Unable to reload repair information."
             );
         }
+    }
+
+    private boolean isTicketAssignedToTechnician(
+            Long ticketId,
+            Long technicianId)
+            throws SQLException {
+
+        if (technicianId == null) {
+            return false;
+        }
+
+        Ticket ticket =
+                ticketService.getTicket(ticketId);
+
+        if (ticket == null) {
+            return false;
+        }
+
+        return ticket.getTechnicianId() != null
+                && ticket.getTechnicianId()
+                .equals(technicianId);
     }
 
     private boolean isTechnician(

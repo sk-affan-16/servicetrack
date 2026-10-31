@@ -5,6 +5,7 @@ import com.servicetrack.model.ServiceRequest;
 import com.servicetrack.service.CustomerService;
 import com.servicetrack.service.ProductService;
 import com.servicetrack.service.ServiceRequestService;
+
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -29,14 +30,19 @@ public class ServiceRequestListServlet extends HttpServlet {
     private final ServiceRequestService serviceRequestService =
             new ServiceRequestService();
 
+    private static final String MASTER_PAGE =
+            "/WEB-INF/views/common/master.jsp";
+
+    private static final String REQUESTS_PAGE =
+            "/WEB-INF/views/customer/service-requests.jsp";
+
     @Override
     protected void doGet(
             HttpServletRequest request,
             HttpServletResponse response)
             throws ServletException, IOException {
 
-        HttpSession session =
-                request.getSession(false);
+        HttpSession session = request.getSession(false);
 
         if (session == null) {
             response.sendRedirect(
@@ -55,20 +61,22 @@ public class ServiceRequestListServlet extends HttpServlet {
             return;
         }
 
+        request.setAttribute("contentPage", REQUESTS_PAGE);
+
         try {
 
             Customer customer =
                     customerService.getCustomerByUserId(userId);
 
             if (customer == null) {
+
                 request.setAttribute(
                         "error",
                         "Customer profile not found."
                 );
 
-                request.getRequestDispatcher(
-                        "/WEB-INF/views/customer/service-requests.jsp"
-                ).forward(request, response);
+                request.getRequestDispatcher(MASTER_PAGE)
+                        .forward(request, response);
 
                 return;
             }
@@ -88,9 +96,7 @@ public class ServiceRequestListServlet extends HttpServlet {
                                 );
 
                 if (productRequests != null) {
-                    serviceRequests.addAll(
-                            productRequests
-                    );
+                    serviceRequests.addAll(productRequests);
                 }
             }
 
@@ -104,9 +110,8 @@ public class ServiceRequestListServlet extends HttpServlet {
                     products
             );
 
-            request.getRequestDispatcher(
-                    "/WEB-INF/views/customer/service-requests.jsp"
-            ).forward(request, response);
+            request.getRequestDispatcher(MASTER_PAGE)
+                    .forward(request, response);
 
         } catch (SQLException e) {
 
@@ -114,6 +119,7 @@ public class ServiceRequestListServlet extends HttpServlet {
                     "Unable to load service requests.",
                     e
             );
+
         } catch (IllegalArgumentException e) {
 
             request.setAttribute(
@@ -121,9 +127,8 @@ public class ServiceRequestListServlet extends HttpServlet {
                     e.getMessage()
             );
 
-            request.getRequestDispatcher(
-                    "/WEB-INF/views/customer/service-requests.jsp"
-            ).forward(request, response);
+            request.getRequestDispatcher(MASTER_PAGE)
+                    .forward(request, response);
         }
     }
 }

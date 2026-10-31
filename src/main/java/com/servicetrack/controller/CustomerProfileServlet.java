@@ -1,3 +1,4 @@
+
 package com.servicetrack.controller;
 
 import com.servicetrack.model.Customer;
@@ -21,6 +22,12 @@ public class CustomerProfileServlet extends HttpServlet {
     private AuthService authService;
     private CustomerService customerService;
 
+    private static final String PROFILE_PAGE =
+            "/WEB-INF/views/common/master.jsp";
+
+    private static final String PROFILE_CONTENT =
+            "/WEB-INF/views/customer-profile.jsp";
+
     @Override
     public void init() {
         authService = new AuthService();
@@ -36,38 +43,45 @@ public class CustomerProfileServlet extends HttpServlet {
         HttpSession session = request.getSession(false);
 
         if (session == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
+            response.sendRedirect(
+                    request.getContextPath() + "/login"
+            );
             return;
         }
 
         Long userId = (Long) session.getAttribute("userId");
 
         if (userId == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
+            response.sendRedirect(
+                    request.getContextPath() + "/login"
+            );
             return;
         }
 
+        request.setAttribute("contentPage", PROFILE_CONTENT);
+
         try {
             User user = authService.getUserById(userId);
-            Customer customer = customerService.getCustomerByUserId(userId);
+            Customer customer =
+                    customerService.getCustomerByUserId(userId);
 
             request.setAttribute("user", user);
             request.setAttribute("customer", customer);
 
-            request.getRequestDispatcher(
-                    "/WEB-INF/views/customer-profile.jsp"
-            ).forward(request, response);
+            request.getRequestDispatcher(PROFILE_PAGE)
+                    .forward(request, response);
 
         } catch (Exception e) {
+
             log("Unable to load customer profile.", e);
+
             request.setAttribute(
                     "error",
                     "Unable to load profile. Please try again."
             );
 
-            request.getRequestDispatcher(
-                    "/WEB-INF/views/customer-profile.jsp"
-            ).forward(request, response);
+            request.getRequestDispatcher(PROFILE_PAGE)
+                    .forward(request, response);
         }
     }
 
@@ -82,16 +96,22 @@ public class CustomerProfileServlet extends HttpServlet {
         HttpSession session = request.getSession(false);
 
         if (session == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
+            response.sendRedirect(
+                    request.getContextPath() + "/login"
+            );
             return;
         }
 
         Long userId = (Long) session.getAttribute("userId");
 
         if (userId == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
+            response.sendRedirect(
+                    request.getContextPath() + "/login"
+            );
             return;
         }
+
+        request.setAttribute("contentPage", PROFILE_CONTENT);
 
         String formType = request.getParameter("formType");
 
@@ -99,30 +119,37 @@ public class CustomerProfileServlet extends HttpServlet {
 
             if ("user".equals(formType)) {
 
-                String fullName = request.getParameter("fullName");
-                String email = request.getParameter("email");
-                String phone = request.getParameter("phone");
+                String fullName =
+                        request.getParameter("fullName");
 
-                User updatedUser =
-                        authService.updateProfile(
-                                userId,
-                                fullName,
-                                email,
-                                phone
-                        );
+                String email =
+                        request.getParameter("email");
+
+                String phone =
+                        request.getParameter("phone");
+
+                User updatedUser = authService.updateProfile(
+                        userId,
+                        fullName,
+                        email,
+                        phone
+                );
 
                 session.setAttribute(
                         "fullName",
                         updatedUser.getFullName()
                 );
+
                 session.setAttribute(
                         "username",
                         updatedUser.getUsername()
                 );
+
                 session.setAttribute(
                         "userId",
                         updatedUser.getUserId()
                 );
+
                 session.setAttribute(
                         "role",
                         updatedUser.getRole()
@@ -137,12 +164,20 @@ public class CustomerProfileServlet extends HttpServlet {
 
             if ("customer".equals(formType)) {
 
-                String address = request.getParameter("address");
-                String city = request.getParameter("city");
-                String state = request.getParameter("state");
-                String pincode = request.getParameter("pincode");
+                String address =
+                        request.getParameter("address");
+
+                String city =
+                        request.getParameter("city");
+
+                String state =
+                        request.getParameter("state");
+
+                String pincode =
+                        request.getParameter("pincode");
 
                 Customer customer = new Customer();
+
                 customer.setUserId(userId);
                 customer.setAddress(address);
                 customer.setCity(city);
@@ -175,9 +210,8 @@ public class CustomerProfileServlet extends HttpServlet {
 
             loadProfileData(request, userId);
 
-            request.getRequestDispatcher(
-                    "/WEB-INF/views/customer-profile.jsp"
-            ).forward(request, response);
+            request.getRequestDispatcher(PROFILE_PAGE)
+                    .forward(request, response);
 
         } catch (SQLException e) {
 
@@ -190,9 +224,8 @@ public class CustomerProfileServlet extends HttpServlet {
 
             loadProfileData(request, userId);
 
-            request.getRequestDispatcher(
-                    "/WEB-INF/views/customer-profile.jsp"
-            ).forward(request, response);
+            request.getRequestDispatcher(PROFILE_PAGE)
+                    .forward(request, response);
 
         } catch (Exception e) {
 
@@ -205,9 +238,8 @@ public class CustomerProfileServlet extends HttpServlet {
 
             loadProfileData(request, userId);
 
-            request.getRequestDispatcher(
-                    "/WEB-INF/views/customer-profile.jsp"
-            ).forward(request, response);
+            request.getRequestDispatcher(PROFILE_PAGE)
+                    .forward(request, response);
         }
     }
 
@@ -216,6 +248,7 @@ public class CustomerProfileServlet extends HttpServlet {
             Long userId) {
 
         try {
+
             request.setAttribute(
                     "user",
                     authService.getUserById(userId)
@@ -227,6 +260,7 @@ public class CustomerProfileServlet extends HttpServlet {
             );
 
         } catch (Exception e) {
+
             log("Unable to reload profile data.", e);
         }
     }

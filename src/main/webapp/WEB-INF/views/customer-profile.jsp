@@ -1,5 +1,4 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-
 <%@ page import="com.servicetrack.model.User" %>
 <%@ page import="com.servicetrack.model.Customer" %>
 
@@ -11,133 +10,166 @@
     String updated = request.getParameter("updated");
 
     String contextPath = request.getContextPath();
+
+    String fullName = user != null && user.getFullName() != null
+            ? user.getFullName() : "";
+
+    String email = user != null && user.getEmail() != null
+            ? user.getEmail() : "";
+
+    String phone = user != null && user.getPhone() != null
+            ? user.getPhone() : "";
+
+    String address = customer != null && customer.getAddress() != null
+            ? customer.getAddress() : "";
+
+    String city = customer != null && customer.getCity() != null
+            ? customer.getCity() : "";
+
+    String state = customer != null && customer.getState() != null
+            ? customer.getState() : "";
+
+    String pincode = customer != null && customer.getPincode() != null
+            ? customer.getPincode() : "";
 %>
 
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>My Profile - ServiceTrack</title>
-</head>
-
-<body>
-
-<h1>My Profile</h1>
+<div class="page-heading">
+    <div>
+        <h1>My Profile</h1>
+        <p>Manage your personal and contact information.</p>
+    </div>
+</div>
 
 <% if ("user".equals(updated)) { %>
-    <p>Personal information updated successfully.</p>
+<div class="profile-alert profile-success">
+    Personal information updated successfully.
+</div>
 <% } %>
 
 <% if ("customer".equals(updated)) { %>
-    <p>Customer information updated successfully.</p>
+<div class="profile-alert profile-success">
+    Customer information updated successfully.
+</div>
 <% } %>
 
 <% if (error != null) { %>
-    <p><strong>Error:</strong> <%= error %></p>
+<div class="profile-alert profile-error">
+    <strong>Error:</strong> <%= error %>
+</div>
 <% } %>
 
+<div class="profile-grid">
 
-<h2>Personal Information</h2>
+    <!-- Personal Information -->
+    <section class="profile-card">
+        <div class="profile-card-heading">
+            <div class="profile-icon">01</div>
+            <div>
+                <h2>Personal Information</h2>
+                <p>Update your account details.</p>
+            </div>
+        </div>
 
-<form method="post"
-      action="<%= contextPath %>/customer/profile">
+        <form method="post"
+              action="<%= contextPath %>/customer/profile">
 
-    <input type="hidden" name="formType" value="user">
+            <input type="hidden" name="formType" value="user">
 
-    <label for="fullName">Full Name:</label><br>
-    <input
-            type="text"
-            id="fullName"
-            name="fullName"
-            value="<%= user != null && user.getFullName() != null
-                    ? user.getFullName() : "" %>"
-            required>
-    <br><br>
+            <div class="profile-field">
+                <label for="fullName">Full Name</label>
+                <input type="text"
+                       id="fullName"
+                       name="fullName"
+                       value="<%= fullName %>"
+                       maxlength="100"
+                       required>
+            </div>
 
-    <label for="email">Email:</label><br>
-    <input
-            type="email"
-            id="email"
-            name="email"
-            value="<%= user != null && user.getEmail() != null
-                    ? user.getEmail() : "" %>"
-            required>
-    <br><br>
+            <div class="profile-field">
+                <label for="email">Email Address</label>
+                <input type="email"
+                       id="email"
+                       name="email"
+                       value="<%= email %>"
+                       maxlength="150"
+                       required>
+            </div>
 
-    <label for="phone">Phone:</label><br>
-    <input
-            type="text"
-            id="phone"
-            name="phone"
-            value="<%= user != null && user.getPhone() != null
-                    ? user.getPhone() : "" %>">
-    <br><br>
+            <div class="profile-field">
+                <label for="phone">Phone Number</label>
+                <input type="text"
+                       id="phone"
+                       name="phone"
+                       value="<%= phone %>"
+                       maxlength="20">
+            </div>
 
-    <button type="submit">Update Personal Information</button>
+            <button type="submit" class="profile-button">
+                Update Personal Information
+            </button>
+        </form>
+    </section>
 
-</form>
+    <!-- Customer Information -->
+    <section class="profile-card">
+        <div class="profile-card-heading">
+            <div class="profile-icon">02</div>
+            <div>
+                <h2>Customer Information</h2>
+                <p>Update your address details.</p>
+            </div>
+        </div>
 
+        <form method="post"
+              action="<%= contextPath %>/customer/profile">
 
-<hr>
+            <input type="hidden" name="formType" value="customer">
 
+            <div class="profile-field">
+                <label for="address">Address</label>
+                <textarea id="address"
+                          name="address"
+                          rows="3"
+                          maxlength="255"><%= address %></textarea>
+            </div>
 
-<h2>Customer Information</h2>
+            <div class="profile-field">
+                <label for="city">City</label>
+                <input type="text"
+                       id="city"
+                       name="city"
+                       value="<%= city %>"
+                       maxlength="100">
+            </div>
 
-<form method="post"
-      action="<%= contextPath %>/customer/profile">
+            <div class="profile-field">
+                <label for="state">State</label>
+                <input type="text"
+                       id="state"
+                       name="state"
+                       value="<%= state %>"
+                       maxlength="100">
+            </div>
 
-    <input type="hidden" name="formType" value="customer">
+            <div class="profile-field">
+                <label for="pincode">Pincode</label>
+                <input type="text"
+                       id="pincode"
+                       name="pincode"
+                       value="<%= pincode %>"
+                       maxlength="10">
+            </div>
 
-    <label for="address">Address:</label><br>
-    <textarea
-            id="address"
-            name="address"
-            rows="3"
-            cols="40"><%= customer != null && customer.getAddress() != null
-                ? customer.getAddress() : "" %></textarea>
-    <br><br>
+            <button type="submit" class="profile-button">
+                Update Customer Information
+            </button>
+        </form>
+    </section>
 
-    <label for="city">City:</label><br>
-    <input
-            type="text"
-            id="city"
-            name="city"
-            value="<%= customer != null && customer.getCity() != null
-                    ? customer.getCity() : "" %>">
-    <br><br>
+</div>
 
-    <label for="state">State:</label><br>
-    <input
-            type="text"
-            id="state"
-            name="state"
-            value="<%= customer != null && customer.getState() != null
-                    ? customer.getState() : "" %>">
-    <br><br>
-
-    <label for="pincode">Pincode:</label><br>
-    <input
-            type="text"
-            id="pincode"
-            name="pincode"
-            value="<%= customer != null && customer.getPincode() != null
-                    ? customer.getPincode() : "" %>">
-    <br><br>
-
-    <button type="submit">Update Customer Information</button>
-
-</form>
-
-
-<hr>
-
-<p>
-    <a href="<%= contextPath %>/customer/">Back to Customer Home</a>
-</p>
-
-<p>
-    <a href="<%= contextPath %>/logout">Logout</a>
-</p>
-
-</body>
-</html>
+<div class="profile-back">
+    <a href="<%= contextPath %>/customer/">
+        ← Back to Customer Dashboard
+    </a>
+</div>

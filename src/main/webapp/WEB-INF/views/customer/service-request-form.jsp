@@ -2,110 +2,128 @@
 <%@ page import="java.util.List" %>
 <%@ page import="com.servicetrack.model.Product" %>
 
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Raise Service Request</title>
-</head>
+<%!
+    private String escapeFormHtml(String value) {
+        if (value == null) return "";
 
-<body>
-
-<h2>Raise Service Request</h2>
+        return value.replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&#39;");
+    }
+%>
 
 <%
     String error = (String) request.getAttribute("error");
 
-    if (error != null) {
-%>
-
-    <p style="color:red;"><%= error %></p>
-
-<%
-    }
-
     List<Product> products =
             (List<Product>) request.getAttribute("products");
+
+    String contextPath = request.getContextPath();
 %>
 
-<%
-    if (products == null || products.isEmpty()) {
-%>
-
-    <p>You have no registered products.</p>
-
-    <a href="<%= request.getContextPath() %>/customer">
-        Back to Customer Dashboard
-    </a>
-
-<%
-    } else {
-%>
-
-<form method="post"
-      action="<%= request.getContextPath() %>/customer/service-request/create">
-
+<div class="request-form-page-heading">
     <div>
-        <label for="productId">Select Product:</label>
+        <h1>Raise Service Request</h1>
+        <p>Tell us about the problem with your registered product.</p>
+    </div>
+</div>
 
-        <select id="productId"
-                name="productId"
-                required>
+<% if (error != null) { %>
+<div class="profile-alert profile-error">
+    <strong>Error:</strong> <%= escapeFormHtml(error) %>
+</div>
+<% } %>
 
-            <option value="">-- Select Product --</option>
+<section class="request-form-card">
 
-            <%
-                for (Product product : products) {
-            %>
+    <div class="request-form-card-heading">
+        <div class="request-form-icon">+</div>
+        <div>
+            <h2>New Service Request</h2>
+            <p>Complete the details below to submit your repair request.</p>
+        </div>
+    </div>
+
+    <% if (products == null || products.isEmpty()) { %>
+
+    <div class="request-form-empty">
+        <h3>No Registered Products</h3>
+        <p>You need to register a product before raising a service request.</p>
+
+        <a class="request-form-submit"
+           href="<%= contextPath %>/customer/products">
+            Register a Product
+        </a>
+    </div>
+
+    <% } else { %>
+
+    <form method="post"
+          action="<%= contextPath %>/customer/service-request/create">
+
+        <div class="request-form-field">
+            <label for="productId">Select Product</label>
+
+            <select id="productId"
+                    name="productId"
+                    required>
+
+                <option value="">-- Select Product --</option>
+
+                <% for (Product product : products) { %>
 
                 <option value="<%= product.getProductId() %>">
-                    <%= product.getBrand() %>
-                    <%= product.getModelNumber() %>
+                    <%= escapeFormHtml(product.getProductName()) %>
                     -
-                    <%= product.getSerialNumber() %>
+                    <%= escapeFormHtml(product.getBrand()) %>
+                    -
+                    <%= product.getModelNumber() == null
+                            ? "Model N/A"
+                            : escapeFormHtml(product.getModelNumber()) %>
+                    -
+                    <%= escapeFormHtml(product.getSerialNumber()) %>
                 </option>
 
-            <%
-                }
-            %>
+                <% } %>
 
-        </select>
-    </div>
+            </select>
+        </div>
 
-    <br>
+        <div class="request-form-field">
+            <label for="complaintDescription">
+                Complaint Description
+            </label>
 
-    <div>
-        <label for="complaintDescription">
-            Complaint Description:
-        </label>
+            <textarea id="complaintDescription"
+                      name="complaintDescription"
+                      rows="7"
+                      maxlength="1000"
+                      placeholder="Describe the issue with your product..."
+                      required></textarea>
 
-        <br>
+            <span class="request-form-hint">
+                    Maximum 1000 characters.
+                </span>
+        </div>
 
-        <textarea id="complaintDescription"
-                  name="complaintDescription"
-                  rows="6"
-                  cols="50"
-                  maxlength="1000"
-                  required></textarea>
-    </div>
+        <button type="submit" class="request-form-submit">
+            Submit Service Request
+        </button>
 
-    <br>
+    </form>
 
-    <button type="submit">
-        Raise Service Request
-    </button>
+    <% } %>
 
-</form>
+</section>
 
-<br>
+<div class="request-form-back">
+    <a href="<%= contextPath %>/customer/service-requests">
+        ← Back to My Service Requests
+    </a>
 
-<a href="<%= request.getContextPath() %>/customer">
-    Back to Customer Dashboard
-</a>
-
-<%
-    }
-%>
-
-</body>
-</html>
+    <a href="<%= contextPath %>/customer/">
+        Customer Dashboard
+    </a>
+</div>

@@ -1,7 +1,9 @@
 package com.servicetrack.controller;
 
 import com.servicetrack.model.RepairPartUsage;
+import com.servicetrack.model.Ticket;
 import com.servicetrack.service.PartsUsageService;
+import com.servicetrack.service.TicketService;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -17,10 +19,12 @@ import java.sql.SQLException;
 public class PartsUsageServlet extends HttpServlet {
 
     private PartsUsageService partsUsageService;
+    private TicketService ticketService;
 
     @Override
     public void init() {
         partsUsageService = new PartsUsageService();
+        ticketService = new TicketService();
     }
 
     @Override
@@ -42,9 +46,24 @@ public class PartsUsageServlet extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
 
         try {
+
             Long ticketId = Long.parseLong(
                     request.getParameter("ticketId")
             );
+
+            Long technicianId =
+                    (Long) session.getAttribute("userId");
+
+            if (!isTicketAssignedToTechnician(
+                    ticketId,
+                    technicianId)) {
+
+                response.sendError(
+                        HttpServletResponse.SC_FORBIDDEN,
+                        "You are not authorized to use parts for this ticket."
+                );
+                return;
+            }
 
             Long sparePartId = Long.parseLong(
                     request.getParameter("sparePartId")
@@ -93,12 +112,10 @@ public class PartsUsageServlet extends HttpServlet {
 
             log("Unable to record spare-part usage.", e);
 
-            request.setAttribute(
-                    "error",
-                    "Unable to record spare-part usage."
+            response.sendError(
+                    HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "Unable to verify ticket authorization."
             );
-
-            forwardErrorPage(request, response);
         }
     }
 
@@ -118,6 +135,51 @@ public class PartsUsageServlet extends HttpServlet {
             return;
         }
 
+        String ticketIdParameter =
+                request.getParameter("ticketId");
+
+        if (ticketIdParameter != null &&
+                !ticketIdParameter.isBlank()) {
+
+            try {
+
+                Long ticketId =
+                        Long.parseLong(ticketIdParameter);
+
+                Long technicianId =
+                        (Long) session.getAttribute("userId");
+
+                if (!isTicketAssignedToTechnician(
+                        ticketId,
+                        technicianId)) {
+
+                    response.sendError(
+                            HttpServletResponse.SC_FORBIDDEN,
+                            "You are not authorized to access this ticket."
+                    );
+                    return;
+                }
+
+            } catch (NumberFormatException e) {
+
+                response.sendError(
+                        HttpServletResponse.SC_BAD_REQUEST,
+                        "Invalid Ticket ID."
+                );
+                return;
+
+            } catch (SQLException e) {
+
+                log("Unable to verify ticket authorization.", e);
+
+                response.sendError(
+                        HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                        "Unable to verify ticket authorization."
+                );
+                return;
+            }
+        }
+
         request.getRequestDispatcher(
                 "/WEB-INF/views/technician/parts-usage.jsp"
         ).forward(request, response);
@@ -131,6 +193,27 @@ public class PartsUsageServlet extends HttpServlet {
         request.getRequestDispatcher(
                 "/WEB-INF/views/technician/parts-usage.jsp"
         ).forward(request, response);
+    }
+
+    private boolean isTicketAssignedToTechnician(
+            Long ticketId,
+            Long technicianId)
+            throws SQLException {
+
+        if (technicianId == null) {
+            return false;
+        }
+
+        Ticket ticket =
+                ticketService.getTicket(ticketId);
+
+        if (ticket == null) {
+            return false;
+        }
+
+        return ticket.getTechnicianId() != null
+                && ticket.getTechnicianId()
+                .equals(technicianId);
     }
 
     private boolean isTechnician(HttpSession session) {

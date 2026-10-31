@@ -2,6 +2,7 @@ package com.servicetrack.controller;
 
 import com.servicetrack.model.Product;
 import com.servicetrack.service.ProductService;
+
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -19,14 +20,19 @@ public class CreateServiceRequestFormServlet extends HttpServlet {
     private final ProductService productService =
             new ProductService();
 
+    private static final String MASTER_PAGE =
+            "/WEB-INF/views/common/master.jsp";
+
+    private static final String FORM_PAGE =
+            "/WEB-INF/views/customer/service-request-form.jsp";
+
     @Override
     protected void doGet(
             HttpServletRequest request,
             HttpServletResponse response)
             throws ServletException, IOException {
 
-        HttpSession session =
-                request.getSession(false);
+        HttpSession session = request.getSession(false);
 
         if (session == null) {
             response.sendRedirect(
@@ -45,21 +51,17 @@ public class CreateServiceRequestFormServlet extends HttpServlet {
             return;
         }
 
+        request.setAttribute("contentPage", FORM_PAGE);
+
         try {
 
             List<Product> products =
-                    productService.getCustomerProducts(
-                            userId
-                    );
+                    productService.getCustomerProducts(userId);
 
-            request.setAttribute(
-                    "products",
-                    products
-            );
+            request.setAttribute("products", products);
 
-            request.getRequestDispatcher(
-                    "/WEB-INF/views/customer/service-request-form.jsp"
-            ).forward(request, response);
+            request.getRequestDispatcher(MASTER_PAGE)
+                    .forward(request, response);
 
         } catch (SQLException e) {
 
@@ -70,14 +72,10 @@ public class CreateServiceRequestFormServlet extends HttpServlet {
 
         } catch (IllegalArgumentException e) {
 
-            request.setAttribute(
-                    "error",
-                    e.getMessage()
-            );
+            request.setAttribute("error", e.getMessage());
 
-            request.getRequestDispatcher(
-                    "/WEB-INF/views/customer/service-request-form.jsp"
-            ).forward(request, response);
+            request.getRequestDispatcher(MASTER_PAGE)
+                    .forward(request, response);
         }
     }
 }

@@ -48,18 +48,21 @@ public class CustomerHomeServlet extends HttpServlet {
             return;
         }
 
+        // Select the dashboard content for master.jsp
+        request.setAttribute(
+                "contentPage",
+                "/WEB-INF/views/customer-home.jsp"
+        );
+
         try {
 
             Customer customer =
                     customerService.getCustomerByUserId(userId);
 
-            request.setAttribute(
-                    "customer",
-                    customer
-            );
+            request.setAttribute("customer", customer);
 
             request.getRequestDispatcher(
-                    "/WEB-INF/views/customer-home.jsp"
+                    "/WEB-INF/views/common/master.jsp"
             ).forward(request, response);
 
         } catch (SQLException e) {
@@ -72,7 +75,7 @@ public class CustomerHomeServlet extends HttpServlet {
             );
 
             request.getRequestDispatcher(
-                    "/WEB-INF/views/customer-home.jsp"
+                    "/WEB-INF/views/common/master.jsp"
             ).forward(request, response);
         }
     }

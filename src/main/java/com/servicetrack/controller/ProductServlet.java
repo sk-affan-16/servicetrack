@@ -20,6 +20,12 @@ public class ProductServlet extends HttpServlet {
 
     private ProductService productService;
 
+    private static final String MASTER_PAGE =
+            "/WEB-INF/views/common/master.jsp";
+
+    private static final String PRODUCTS_PAGE =
+            "/WEB-INF/views/customer-products.jsp";
+
     @Override
     public void init() {
         productService = new ProductService();
@@ -49,26 +55,24 @@ public class ProductServlet extends HttpServlet {
             return;
         }
 
+        request.setAttribute("contentPage", PRODUCTS_PAGE);
+
         try {
+
             List<Product> products =
                     productService.getCustomerProducts(userId);
 
             request.setAttribute("products", products);
 
-            request.getRequestDispatcher(
-                    "/WEB-INF/views/customer-products.jsp"
-            ).forward(request, response);
+            request.getRequestDispatcher(MASTER_PAGE)
+                    .forward(request, response);
 
         } catch (IllegalArgumentException e) {
 
-            request.setAttribute(
-                    "error",
-                    e.getMessage()
-            );
+            request.setAttribute("error", e.getMessage());
 
-            request.getRequestDispatcher(
-                    "/WEB-INF/views/customer-products.jsp"
-            ).forward(request, response);
+            request.getRequestDispatcher(MASTER_PAGE)
+                    .forward(request, response);
 
         } catch (SQLException e) {
 
@@ -79,9 +83,8 @@ public class ProductServlet extends HttpServlet {
                     "Unable to load products."
             );
 
-            request.getRequestDispatcher(
-                    "/WEB-INF/views/customer-products.jsp"
-            ).forward(request, response);
+            request.getRequestDispatcher(MASTER_PAGE)
+                    .forward(request, response);
         }
     }
 
@@ -147,10 +150,7 @@ public class ProductServlet extends HttpServlet {
 
         } catch (IllegalArgumentException e) {
 
-            request.setAttribute(
-                    "error",
-                    e.getMessage()
-            );
+            request.setAttribute("error", e.getMessage());
 
             loadProductsAndForward(
                     request,
@@ -181,15 +181,14 @@ public class ProductServlet extends HttpServlet {
             Long userId)
             throws ServletException, IOException {
 
+        request.setAttribute("contentPage", PRODUCTS_PAGE);
+
         try {
 
             List<Product> products =
                     productService.getCustomerProducts(userId);
 
-            request.setAttribute(
-                    "products",
-                    products
-            );
+            request.setAttribute("products", products);
 
         } catch (SQLException e) {
 
@@ -201,8 +200,7 @@ public class ProductServlet extends HttpServlet {
             );
         }
 
-        request.getRequestDispatcher(
-                "/WEB-INF/views/customer-products.jsp"
-        ).forward(request, response);
+        request.getRequestDispatcher(MASTER_PAGE)
+                .forward(request, response);
     }
 }
