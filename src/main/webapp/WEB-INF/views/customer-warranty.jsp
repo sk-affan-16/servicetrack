@@ -36,13 +36,12 @@
         for (ProductWarranty item : productWarranties) {
             Warranty warranty = item.getWarranty();
 
-            if (warranty == null) {
+            String effective = item.getEffectiveStatus();
+            if ("NOT AVAILABLE".equals(effective) || "NOT_STARTED".equals(effective) || "VOID".equals(effective)) {
                 unavailableCount++;
-            } else if ("ACTIVE".equalsIgnoreCase(
-                    warranty.getWarrantyStatus())) {
+            } else if ("ACTIVE".equals(effective)) {
                 activeCount++;
-            } else if ("EXPIRED".equalsIgnoreCase(
-                    warranty.getWarrantyStatus())) {
+            } else if ("EXPIRED".equals(effective)) {
                 expiredCount++;
             }
         }
@@ -138,9 +137,7 @@
                 Product product = item.getProduct();
                 Warranty warranty = item.getWarranty();
 
-                String status = warranty == null
-                        ? "NOT AVAILABLE"
-                        : warranty.getWarrantyStatus();
+                String status = item.getEffectiveStatus();
 
                 String statusClass = "warranty-unavailable";
 

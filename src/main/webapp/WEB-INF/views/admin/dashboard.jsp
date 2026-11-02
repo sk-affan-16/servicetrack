@@ -117,6 +117,18 @@
         Inventory
     </a>
 
+    <a href="${pageContext.request.contextPath}/admin/assignments">
+        Manage Assignments
+    </a>
+
+    <a href="${pageContext.request.contextPath}/admin/technicians">
+        Manage Technicians
+    </a>
+
+    <a href="${pageContext.request.contextPath}/admin/warranties">
+        Manage Warranty
+    </a>
+
     <a href="${pageContext.request.contextPath}/logout">
         Logout
     </a>

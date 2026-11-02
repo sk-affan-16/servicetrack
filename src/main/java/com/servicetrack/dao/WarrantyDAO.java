@@ -197,6 +197,39 @@ public class WarrantyDAO {
         }
     }
 
+    public java.util.List<com.servicetrack.model.AdminWarrantyView> findAllForAdmin() throws SQLException {
+        String sql = "SELECT p.product_id,p.product_name,p.brand,p.model_number,p.serial_number,u.full_name, w.warranty_id,w.warranty_start,w.warranty_end,w.warranty_status FROM products p JOIN customers c ON c.customer_id=p.customer_id JOIN users u ON u.user_id=c.user_id LEFT JOIN warranties w ON w.product_id=p.product_id ORDER BY p.product_id DESC";
+        java.util.List<com.servicetrack.model.AdminWarrantyView> rows = new java.util.ArrayList<>();
+        try (Connection con=DBConnection.getConnection(); PreparedStatement ps=con.prepareStatement(sql); ResultSet rs=ps.executeQuery()) {
+            while(rs.next()) {
+                com.servicetrack.model.AdminWarrantyView v=new com.servicetrack.model.AdminWarrantyView();
+                v.setProductId(rs.getLong("product_id")); v.setProductName(rs.getString("product_name")); v.setBrand(rs.getString("brand")); v.setModelNumber(rs.getString("model_number")); v.setSerialNumber(rs.getString("serial_number")); v.setCustomerName(rs.getString("full_name"));
+                long wid=rs.getLong("warranty_id"); if(!rs.wasNull()) v.setWarrantyId(wid);
+                Date st=rs.getDate("warranty_start"), en=rs.getDate("warranty_end"); if(st!=null)v.setWarrantyStart(st.toLocalDate()); if(en!=null)v.setWarrantyEnd(en.toLocalDate());
+                v.setStoredStatus(rs.getString("warranty_status"));
+                v.setEffectiveStatus(computeEffectiveStatus(v.getStoredStatus(),v.getWarrantyStart(),v.getWarrantyEnd(),java.time.LocalDate.now())); rows.add(v);
+            }
+        } return rows;
+    }
+
+    public Warranty createOrUpdateForAdmin(Long productId, java.time.LocalDate start, java.time.LocalDate end) throws SQLException {
+        String sql = "INSERT INTO warranties (product_id,warranty_start,warranty_end,warranty_status) VALUES (?,?,?,'ACTIVE') ON DUPLICATE KEY UPDATE warranty_start=VALUES(warranty_start), warranty_end=VALUES(warranty_end), warranty_status=IF(warranty_status='VOID','VOID','ACTIVE')";
+        try(Connection con=DBConnection.getConnection(); PreparedStatement ps=con.prepareStatement(sql)){ ps.setLong(1,productId); ps.setDate(2,Date.valueOf(start)); ps.setDate(3,Date.valueOf(end)); ps.executeUpdate(); }
+        return findByProductId(productId);
+    }
+
+    public boolean updateAdminStatus(Long warrantyId, String status) throws SQLException {
+        return updateStatus(warrantyId,status);
+    }
+
+    public static String computeEffectiveStatus(String stored, java.time.LocalDate start, java.time.LocalDate end, java.time.LocalDate today) {
+        if ("VOID".equals(stored)) return "VOID";
+        if (start==null || end==null) return "NO_WARRANTY";
+        if (today.isBefore(start)) return "NOT_STARTED";
+        if (today.isAfter(end)) return "EXPIRED";
+        return "ACTIVE";
+    }
+
     private Warranty mapWarranty(
             ResultSet resultSet)
             throws SQLException {
