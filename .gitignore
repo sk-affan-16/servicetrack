@@ -29,3 +29,4 @@ out/
 
 # Maven
 target/
+.smarttomcat/

@@ -1,5 +1,8 @@
 package com.servicetrack.controller;
 
+import com.servicetrack.model.Customer;
+import com.servicetrack.service.CustomerService;
+
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -8,9 +11,17 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
+import java.sql.SQLException;
 
 @WebServlet("/customer/")
 public class CustomerHomeServlet extends HttpServlet {
+
+    private CustomerService customerService;
+
+    @Override
+    public void init() {
+        customerService = new CustomerService();
+    }
 
     @Override
     protected void doGet(
@@ -20,47 +31,52 @@ public class CustomerHomeServlet extends HttpServlet {
 
         HttpSession session = request.getSession(false);
 
-        String fullName =
-                (String) session.getAttribute("fullName");
+        if (session == null) {
+            response.sendRedirect(
+                    request.getContextPath() + "/login"
+            );
+            return;
+        }
 
-        String username =
-                (String) session.getAttribute("username");
+        Long userId =
+                (Long) session.getAttribute("userId");
 
-        response.setContentType("text/html;charset=UTF-8");
+        if (userId == null) {
+            response.sendRedirect(
+                    request.getContextPath() + "/login"
+            );
+            return;
+        }
 
-        response.getWriter().println("""
-                <!DOCTYPE html>
-                <html lang="en">
-                <head>
-                    <meta charset="UTF-8">
-                    <title>Customer Dashboard - ServiceTrack</title>
-                </head>
-                <body>
+        // Select the dashboard content for master.jsp
+        request.setAttribute(
+                "contentPage",
+                "/WEB-INF/views/customer-home.jsp"
+        );
 
-                    <h1>ServiceTrack</h1>
+        try {
 
-                    <h2>Customer Dashboard</h2>
+            Customer customer =
+                    customerService.getCustomerByUserId(userId);
 
-                    <p>Welcome, %s!</p>
+            request.setAttribute("customer", customer);
 
-                    <p>Username: %s</p>
+            request.getRequestDispatcher(
+                    "/WEB-INF/views/common/master.jsp"
+            ).forward(request, response);
 
-                    <p>
-                        You are successfully authenticated as a CUSTOMER.
-                    </p>
+        } catch (SQLException e) {
 
-                    <p>
-                        Session authentication is working.
-                    </p>
+            log("Unable to load customer profile.", e);
 
-                    <a href="%s/logout">Logout</a>
+            request.setAttribute(
+                    "error",
+                    "Unable to load customer profile."
+            );
 
-                </body>
-                </html>
-                """.formatted(
-                fullName,
-                username,
-                request.getContextPath()
-        ));
+            request.getRequestDispatcher(
+                    "/WEB-INF/views/common/master.jsp"
+            ).forward(request, response);
+        }
     }
 }

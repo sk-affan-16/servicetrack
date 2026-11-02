@@ -127,9 +127,10 @@ public class LoginServlet extends HttpServlet {
                 case "ADMIN":
                     response.sendRedirect(
                             request.getContextPath()
-                                    + "/admin/"
+                                    + "/admin/dashboard"
                     );
                     break;
+
 
                 default:
                     session.invalidate();
