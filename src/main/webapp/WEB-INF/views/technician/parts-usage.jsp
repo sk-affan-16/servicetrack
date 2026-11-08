@@ -1,17 +1,37 @@
-<%@ page contentType="text/html;charset=UTF-8" %>
 
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Parts Usage</title>
-</head>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page import="java.util.List" %>
+<%@ page import="com.servicetrack.model.Ticket" %>
+<%@ page import="com.servicetrack.model.SparePart" %>
 
-<body>
+<%!
+    private String escapeHtml(String value) {
 
-<h2>Spare Parts Usage</h2>
+        if (value == null) {
+            return "";
+        }
+
+        return value
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&#39;");
+    }
+%>
 
 <%
-    String error = (String) request.getAttribute("error");
+    List<Ticket> assignedTickets =
+            (List<Ticket>) request.getAttribute("assignedTickets");
+
+    List<SparePart> availableParts =
+            (List<SparePart>) request.getAttribute("availableParts");
+
+    Long selectedTicketId =
+            (Long) request.getAttribute("selectedTicketId");
+
+    String error =
+            (String) request.getAttribute("error");
 
     String success =
             (String) session.getAttribute("success");
@@ -19,75 +39,166 @@
     if (success != null) {
         session.removeAttribute("success");
     }
+
+    if (assignedTickets == null) {
+        assignedTickets = java.util.Collections.emptyList();
+    }
+
+    if (availableParts == null) {
+        availableParts = java.util.Collections.emptyList();
+    }
 %>
 
-<% if (error != null) { %>
+<div class="dashboard-content">
 
-<p style="color:red;">
-    <strong>Error:</strong>
-    <%= error %>
-</p>
+    <div class="page-heading">
+        <div>
+            <h1>Spare Parts Usage</h1>
+            <p>Select your assigned repair ticket and the spare part used.</p>
+        </div>
+    </div>
 
-<% } %>
+    <% if (error != null) { %>
 
-<% if (success != null) { %>
+    <div class="alert alert-error">
+        <strong>Error:</strong>
+        <%= escapeHtml(error) %>
+    </div>
 
-<p style="color:green;">
-    <strong>Success:</strong>
-    <%= success %>
-</p>
+    <% } %>
 
-<% } %>
+    <% if (success != null) { %>
 
-<hr>
+    <div class="alert alert-success">
+        <strong>Success:</strong>
+        <%= escapeHtml(success) %>
+    </div>
 
-<h3>Use Spare Part</h3>
+    <% } %>
 
-<form method="post"
-      action="<%= request.getContextPath() %>/technician/parts-usage">
+    <div class="service-card">
 
-    <label for="ticketId">Ticket ID:</label><br>
+        <h2>Record Spare Part Usage</h2>
 
-    <input type="number"
-           id="ticketId"
-           name="ticketId"
-           min="1"
-           required>
+        <p>Select the ticket and spare part from the available options.</p>
 
-    <br><br>
+        <form method="post"
+              action="<%= request.getContextPath() %>/technician/parts-usage">
 
-    <label for="sparePartId">Spare Part ID:</label><br>
+            <div class="form-group">
 
-    <input type="number"
-           id="sparePartId"
-           name="sparePartId"
-           min="1"
-           required>
+                <label for="ticketId">
+                    Select Assigned Ticket
+                </label>
 
-    <br><br>
+                <select id="ticketId"
+                        name="ticketId"
+                        required>
 
-    <label for="quantity">Quantity Used:</label><br>
+                    <option value="">
+                        -- Select Your Ticket --
+                    </option>
 
-    <input type="number"
-           id="quantity"
-           name="quantity"
-           min="1"
-           required>
+                    <% for (Ticket ticket : assignedTickets) { %>
 
-    <br><br>
+                    <option
+                            value="<%= ticket.getTicketId() %>"
+                            <%= selectedTicketId != null
+                                    && selectedTicketId.equals(ticket.getTicketId())
+                                    ? "selected" : "" %>>
 
-    <button type="submit">
-        Use Spare Part
-    </button>
+                        <%= escapeHtml(ticket.getTicketNumber()) %>
+                        - Ticket #<%= ticket.getTicketId() %>
 
-</form>
+                    </option>
 
-<hr>
+                    <% } %>
 
-<p>
-    Enter the ticket ID for the repair, the spare-part ID,
-    and the quantity used during the repair.
-</p>
+                </select>
 
-</body>
-</html>
+                <% if (assignedTickets.isEmpty()) { %>
+
+                <p>No tickets are currently assigned to you.</p>
+
+                <% } %>
+
+            </div>
+
+            <div class="form-group">
+
+                <label for="sparePartId">
+                    Select Spare Part
+                </label>
+
+                <select id="sparePartId"
+                        name="sparePartId"
+                        required>
+
+                    <option value="">
+                        -- Select Spare Part --
+                    </option>
+
+                    <% for (SparePart part : availableParts) { %>
+
+                    <option value="<%= part.getSparePartId() %>">
+
+                        <%= escapeHtml(part.getPartName()) %>
+                        -
+                        <%= escapeHtml(part.getPartNumber()) %>
+                        (Stock: <%= part.getQuantity() %>)
+
+                    </option>
+
+                    <% } %>
+
+                </select>
+
+                <% if (availableParts.isEmpty()) { %>
+
+                <p>No spare parts are currently available in stock.</p>
+
+                <% } %>
+
+            </div>
+
+            <div class="form-group">
+
+                <label for="quantity">
+                    Quantity Used
+                </label>
+
+                <input type="number"
+                       id="quantity"
+                       name="quantity"
+                       min="1"
+                       placeholder="Enter quantity used"
+                       required>
+
+            </div>
+
+            <button type="submit"
+                    class="btn"
+                    <%= assignedTickets.isEmpty()
+                            || availableParts.isEmpty()
+                            ? "disabled" : "" %>>
+
+                Use Spare Part
+
+            </button>
+
+        </form>
+
+    </div>
+
+    <div style="margin-top: 20px;">
+
+        <a class="btn"
+           href="<%= request.getContextPath() %>/technician/">
+
+            Back to Dashboard
+
+        </a>
+
+    </div>
+
+</div>
