@@ -1,52 +1,41 @@
+
 <%@ page contentType="text/html;charset=UTF-8" %>
 
-<!DOCTYPE html>
-<html lang="en">
+<div class="dashboard-content">
 
-<head>
-    <meta charset="UTF-8">
-    <title>Technician Dashboard - ServiceTrack</title>
-</head>
+    <div class="page-heading">
+        <div>
+            <h1>Technician Dashboard</h1>
+            <p>Welcome back, <strong>${sessionScope.fullName}</strong></p>
+        </div>
+    </div>
 
-<body>
+    <h2 class="section-heading">Technician Operations</h2>
 
-<h1>ServiceTrack</h1>
+    <div class="service-grid">
 
-<h2>Technician Dashboard</h2>
+        <div class="service-card">
+            <div class="service-icon">&#128295;</div>
+            <h3>Repair Management</h3>
+            <p>View assigned repair jobs, perform diagnosis and update repair progress.</p>
 
-<p>
-    Welcome,
-    <strong>
-        <%= session.getAttribute("fullName") %>
-    </strong>
-</p>
+            <a class="btn"
+               href="${pageContext.request.contextPath}/technician/tickets">
+                View Assigned Jobs
+            </a>
+        </div>
 
-<hr>
+        <div class="service-card">
+            <div class="service-icon">&#128230;</div>
+            <h3>Parts Usage</h3>
+            <p>View and manage spare parts used during assigned repairs.</p>
 
-<h3>Technician Operations</h3>
+            <a class="btn"
+               href="${pageContext.request.contextPath}/technician/parts-usage">
+                Manage Parts Usage
+            </a>
+        </div>
 
-<ul>
-    <li>
-        <a href="<%= request.getContextPath() %>/technician/repair?ticketId=1">
-            Repair Management
-        </a>
-    </li>
+    </div>
 
-    <li>
-        <a href="<%= request.getContextPath() %>/technician/parts-usage?ticketId=1">
-            Parts Usage
-        </a>
-    </li>
-</ul>
-
-<hr>
-
-<p>
-    <a href="<%= request.getContextPath() %>/logout">
-        Logout
-    </a>
-</p>
-
-</body>
-
-</html>
+</div>
