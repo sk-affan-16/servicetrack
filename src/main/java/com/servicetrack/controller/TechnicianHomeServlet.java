@@ -1,3 +1,4 @@
+
 package com.servicetrack.controller;
 
 import jakarta.servlet.ServletException;
@@ -17,8 +18,13 @@ public class TechnicianHomeServlet extends HttpServlet {
             HttpServletResponse response)
             throws ServletException, IOException {
 
-        request.getRequestDispatcher(
+        request.setAttribute(
+                "contentPage",
                 "/WEB-INF/views/technician/home.jsp"
+        );
+
+        request.getRequestDispatcher(
+                "/WEB-INF/views/common/master.jsp"
         ).forward(request, response);
     }
 }
