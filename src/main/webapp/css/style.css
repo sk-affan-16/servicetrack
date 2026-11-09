@@ -1818,162 +1818,876 @@ th {
         text-align: left;
     }
 }
-/* Technician Dashboard */
-.dashboard-content { width: 100%; }
-.dashboard-content .page-heading {
+
+
+/* =========================================
+   SERVICETRACK ADMIN INVENTORY MANAGEMENT
+========================================= */
+
+.inventory-page {
+    width: 100%;
+    max-width: 1500px;
+    margin: auto;
+    padding: 35px;
+    color: #263445;
+}
+
+
+/* PAGE HEADING */
+
+.inventory-heading {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 20px;
     flex-wrap: wrap;
+    gap: 20px;
     margin-bottom: 28px;
 }
-.dashboard-content .page-heading h1 {
+
+.inventory-eyebrow {
+    color: #2769b1;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+}
+
+.inventory-heading h1 {
+    margin: 9px 0;
+    font-size: 30px;
     color: #172b46;
-    font-size: 28px;
-    margin: 0;
 }
-.dashboard-content .page-heading p {
-    color: #718096;
+
+.inventory-heading p {
+    color: #8390a0;
     font-size: 14px;
-    margin: 0;
 }
-.dashboard-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 22px;
-}
-.dashboard-card {
-    background: #fff;
-    border: 1px solid #e5eaf1;
-    border-radius: 12px;
-    padding: 26px;
-    min-height: 190px;
-    box-shadow: 0 4px 15px rgba(20, 35, 60, 0.04);
-    transition: 0.2s ease;
-}
-.dashboard-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 22px rgba(20, 35, 60, 0.09);
-}
-.dashboard-card h3 {
-    color: #172b46;
-    font-size: 19px;
-    margin-bottom: 12px;
-}
-.dashboard-card p {
-    color: #718096;
-    font-size: 14px;
-    line-height: 1.6;
-    margin-bottom: 22px;
-}
-.dashboard-card a {
-    display: inline-block;
+
+.inventory-back {
     padding: 11px 17px;
-    background: #2769b1;
-    color: #fff;
-    text-decoration: none;
     border-radius: 7px;
+    background: #eaf1ff;
+    color: #2855a6;
+    text-decoration: none;
     font-size: 13px;
     font-weight: 600;
 }
-.dashboard-card a:hover { background: #1d528d; }
 
-/* Technician Assigned Tickets */
-.technician-tickets-page { width: 100%; }
-.technician-ticket-card {
-    background: #fff;
+.inventory-back:hover {
+    background: #dce8ff;
+}
+
+
+/* SUMMARY CARDS */
+
+.inventory-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+    margin-bottom: 25px;
+}
+
+.inventory-summary-card {
+    padding: 22px;
+    background: white;
     border: 1px solid #e5eaf1;
-    border-radius: 12px;
-    padding: 24px;
+    border-radius: 11px;
     box-shadow: 0 4px 15px rgba(20, 35, 60, 0.04);
 }
-.technician-ticket-heading {
+
+.inventory-summary-card span {
+    display: block;
+    margin-bottom: 12px;
+    color: #718096;
+    font-size: 13px;
+}
+
+.inventory-summary-card strong {
+    display: block;
+    color: #2769b1;
+    font-size: 28px;
+    font-weight: 700;
+}
+
+
+/* MAIN CARDS */
+
+.inventory-card {
+    background: white;
+    border: 1px solid #e5eaf1;
+    border-radius: 12px;
+    padding: 25px;
+    margin-bottom: 25px;
+    box-shadow: 0 4px 15px rgba(20, 35, 60, 0.04);
+}
+
+.inventory-card-heading {
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 15px;
-    margin-bottom: 22px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
 }
-.technician-ticket-heading h2 {
+
+.inventory-card-heading h2 {
+    margin: 0 0 7px;
     color: #172b46;
-    font-size: 19px;
+    font-size: 20px;
 }
-.technician-ticket-heading span {
+
+.inventory-card-heading p {
+    margin: 0;
+    color: #8390a0;
+    font-size: 13px;
+}
+
+.inventory-count {
+    padding: 7px 13px;
     background: #eaf1ff;
     color: #2855a6;
-    padding: 7px 12px;
     border-radius: 20px;
     font-size: 12px;
     font-weight: 600;
 }
-.technician-ticket-table-wrapper {
+
+
+/* ADD FORM */
+
+.inventory-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+    margin-bottom: 22px;
+}
+
+.inventory-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.inventory-field label {
+    color: #40536b;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.inventory-field input {
+    width: 100%;
+    height: 44px;
+    padding: 0 13px;
+    border: 1px solid #dce3eb;
+    border-radius: 7px;
+    background: #fbfcfe;
+    color: #263445;
+    font-family: inherit;
+    font-size: 13px;
+    outline: none;
+}
+
+.inventory-field input:focus {
+    border-color: #2769b1;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(39, 105, 177, 0.10);
+}
+
+.inventory-field input::placeholder {
+    color: #a2adba;
+}
+
+
+/* BUTTONS */
+
+.inventory-button {
+    padding: 12px 19px;
+    background: #2769b1;
+    color: white;
+    border: none;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.inventory-button:hover {
+    background: #1d528d;
+}
+
+.inventory-update-button {
+    padding: 9px 13px;
+    background: #2769b1;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.inventory-update-button:hover {
+    background: #1d528d;
+}
+
+.inventory-delete-button {
+    padding: 9px 13px;
+    background: #fff0f0;
+    color: #bd3030;
+    border: 1px solid #f2cccc;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.inventory-delete-button:hover {
+    background: #ffe0e0;
+}
+
+
+/* INVENTORY TABLE */
+
+.inventory-table-wrapper {
     width: 100%;
     overflow-x: auto;
 }
-.technician-ticket-table {
+
+.inventory-table {
     width: 100%;
     border-collapse: collapse;
+    text-align: left;
     font-size: 13px;
 }
-.technician-ticket-table th {
-    background: #f5f7fb;
-    color: #536176;
-    padding: 14px 12px;
-    text-align: left;
-}
-.technician-ticket-table td {
-    padding: 14px 12px;
-    border-bottom: 1px solid #edf0f5;
-    color: #465267;
+
+.inventory-table th {
+    padding: 15px 13px;
+    background: #f1f5fa;
+    color: #40536b;
+    font-weight: 700;
     white-space: nowrap;
+    border-bottom: 1px solid #e5eaf1;
 }
-.technician-ticket-table tbody tr:hover { background: #fafbfe; }
-.technician-ticket-status {
+
+.inventory-table td {
+    padding: 16px 13px;
+    color: #465267;
+    border-bottom: 1px solid #edf0f5;
+    vertical-align: middle;
+}
+
+.inventory-table tbody tr:hover {
+    background: #fafbfe;
+}
+
+.inventory-table td strong {
+    color: #172b46;
+}
+
+.inventory-table small {
     display: inline-block;
-    padding: 6px 10px;
+    margin-top: 5px;
+    color: #8390a0;
+    font-size: 11px;
+}
+
+.inventory-price {
+    font-weight: 700;
+    white-space: nowrap;
+    color: #2769b1 !important;
+}
+
+
+/* STOCK STATUS */
+
+.stock-badge {
+    display: inline-block;
+    padding: 7px 10px;
     border-radius: 20px;
-    background: #eaf1ff;
-    color: #2855a6;
     font-size: 11px;
     font-weight: 700;
+    white-space: nowrap;
 }
-.technician-ticket-actions { display: flex; gap: 8px; }
-.technician-ticket-actions a {
-    display: inline-block;
-    padding: 8px 11px;
-    background: #2769b1;
-    color: #fff;
-    border-radius: 5px;
-    text-decoration: none;
-    font-size: 12px;
+
+.stock-low {
+    background: #fff0e0;
+    color: #b65d0b;
 }
-.technician-ticket-actions a:hover { background: #1d528d; }
-.technician-ticket-empty {
+
+.stock-available {
+    background: #e9f8ef;
+    color: #176b39;
+}
+
+
+/* STOCK UPDATE FORM */
+
+.stock-update-form {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 180px;
+}
+
+.stock-update-form input {
+    width: 85px;
+    height: 36px;
+    padding: 0 9px;
+    border: 1px solid #dce3eb;
+    border-radius: 6px;
+    outline: none;
+}
+
+.stock-update-form input:focus {
+    border-color: #2769b1;
+}
+
+
+/* EMPTY INVENTORY */
+
+.inventory-empty {
     text-align: center;
     padding: 45px 20px;
     background: #fafbfe;
     border: 1px dashed #d8dee9;
     border-radius: 9px;
 }
-.technician-ticket-empty h3 {
-    color: #263449;
-    margin-bottom: 9px;
+
+.inventory-empty-icon {
+    font-size: 38px;
+    margin-bottom: 12px;
 }
-.technician-ticket-empty p {
+
+.inventory-empty h3 {
+    margin-bottom: 8px;
+    color: #263445;
+    font-size: 17px;
+}
+
+.inventory-empty p {
+    color: #8390a0;
+    font-size: 13px;
+}
+
+
+/* ERROR MESSAGE */
+
+.inventory-alert {
+    padding: 14px 17px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 13px;
+}
+
+.inventory-error {
+    background: #fff0f0;
+    color: #bd3030;
+    border: 1px solid #f2cccc;
+}
+
+
+/* FOOTER */
+
+.inventory-footer {
+    margin-top: 25px;
+}
+
+.inventory-footer a {
+    color: #2769b1;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.inventory-footer a:hover {
+    text-decoration: underline;
+}
+
+
+/* RESPONSIVE DESIGN */
+
+@media (max-width: 900px) {
+
+    .inventory-page {
+        padding: 22px;
+    }
+
+    .inventory-summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+}
+
+@media (max-width: 600px) {
+
+    .inventory-page {
+        padding: 15px;
+    }
+
+    .inventory-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .inventory-heading h1 {
+        font-size: 24px;
+    }
+
+    .inventory-summary {
+        grid-template-columns: 1fr;
+    }
+
+    .inventory-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .inventory-card {
+        padding: 17px;
+    }
+
+    .inventory-card-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .stock-update-form {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+}
+
+
+
+/* =========================================
+   SERVICETRACK ADMIN INVENTORY MANAGEMENT
+========================================= */
+
+.inventory-page {
+    width: 100%;
+    max-width: 1500px;
+    margin: auto;
+    padding: 35px;
+    color: #263445;
+}
+
+
+/* PAGE HEADING */
+
+.inventory-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-bottom: 28px;
+}
+
+.inventory-eyebrow {
+    color: #2769b1;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+}
+
+.inventory-heading h1 {
+    margin: 9px 0;
+    font-size: 30px;
+    color: #172b46;
+}
+
+.inventory-heading p {
+    color: #8390a0;
+    font-size: 14px;
+}
+
+.inventory-back {
+    padding: 11px 17px;
+    border-radius: 7px;
+    background: #eaf1ff;
+    color: #2855a6;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.inventory-back:hover {
+    background: #dce8ff;
+}
+
+
+/* SUMMARY CARDS */
+
+.inventory-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+    margin-bottom: 25px;
+}
+
+.inventory-summary-card {
+    padding: 22px;
+    background: white;
+    border: 1px solid #e5eaf1;
+    border-radius: 11px;
+    box-shadow: 0 4px 15px rgba(20, 35, 60, 0.04);
+}
+
+.inventory-summary-card span {
+    display: block;
+    margin-bottom: 12px;
     color: #718096;
     font-size: 13px;
 }
-@media (max-width: 700px) {
-    .dashboard-grid { grid-template-columns: 1fr; }
-    .dashboard-content .page-heading {
+
+.inventory-summary-card strong {
+    display: block;
+    color: #2769b1;
+    font-size: 28px;
+    font-weight: 700;
+}
+
+
+/* MAIN CARDS */
+
+.inventory-card {
+    background: white;
+    border: 1px solid #e5eaf1;
+    border-radius: 12px;
+    padding: 25px;
+    margin-bottom: 25px;
+    box-shadow: 0 4px 15px rgba(20, 35, 60, 0.04);
+}
+
+.inventory-card-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+}
+
+.inventory-card-heading h2 {
+    margin: 0 0 7px;
+    color: #172b46;
+    font-size: 20px;
+}
+
+.inventory-card-heading p {
+    margin: 0;
+    color: #8390a0;
+    font-size: 13px;
+}
+
+.inventory-count {
+    padding: 7px 13px;
+    background: #eaf1ff;
+    color: #2855a6;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+
+/* ADD FORM */
+
+.inventory-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+    margin-bottom: 22px;
+}
+
+.inventory-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.inventory-field label {
+    color: #40536b;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.inventory-field input {
+    width: 100%;
+    height: 44px;
+    padding: 0 13px;
+    border: 1px solid #dce3eb;
+    border-radius: 7px;
+    background: #fbfcfe;
+    color: #263445;
+    font-family: inherit;
+    font-size: 13px;
+    outline: none;
+}
+
+.inventory-field input:focus {
+    border-color: #2769b1;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(39, 105, 177, 0.10);
+}
+
+.inventory-field input::placeholder {
+    color: #a2adba;
+}
+
+
+/* BUTTONS */
+
+.inventory-button {
+    padding: 12px 19px;
+    background: #2769b1;
+    color: white;
+    border: none;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.inventory-button:hover {
+    background: #1d528d;
+}
+
+.inventory-update-button {
+    padding: 9px 13px;
+    background: #2769b1;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.inventory-update-button:hover {
+    background: #1d528d;
+}
+
+.inventory-delete-button {
+    padding: 9px 13px;
+    background: #fff0f0;
+    color: #bd3030;
+    border: 1px solid #f2cccc;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.inventory-delete-button:hover {
+    background: #ffe0e0;
+}
+
+
+/* INVENTORY TABLE */
+
+.inventory-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.inventory-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 13px;
+}
+
+.inventory-table th {
+    padding: 15px 13px;
+    background: #f1f5fa;
+    color: #40536b;
+    font-weight: 700;
+    white-space: nowrap;
+    border-bottom: 1px solid #e5eaf1;
+}
+
+.inventory-table td {
+    padding: 16px 13px;
+    color: #465267;
+    border-bottom: 1px solid #edf0f5;
+    vertical-align: middle;
+}
+
+.inventory-table tbody tr:hover {
+    background: #fafbfe;
+}
+
+.inventory-table td strong {
+    color: #172b46;
+}
+
+.inventory-table small {
+    display: inline-block;
+    margin-top: 5px;
+    color: #8390a0;
+    font-size: 11px;
+}
+
+.inventory-price {
+    font-weight: 700;
+    white-space: nowrap;
+    color: #2769b1 !important;
+}
+
+
+/* STOCK STATUS */
+
+.stock-badge {
+    display: inline-block;
+    padding: 7px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.stock-low {
+    background: #fff0e0;
+    color: #b65d0b;
+}
+
+.stock-available {
+    background: #e9f8ef;
+    color: #176b39;
+}
+
+
+/* STOCK UPDATE FORM */
+
+.stock-update-form {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 180px;
+}
+
+.stock-update-form input {
+    width: 85px;
+    height: 36px;
+    padding: 0 9px;
+    border: 1px solid #dce3eb;
+    border-radius: 6px;
+    outline: none;
+}
+
+.stock-update-form input:focus {
+    border-color: #2769b1;
+}
+
+
+/* EMPTY INVENTORY */
+
+.inventory-empty {
+    text-align: center;
+    padding: 45px 20px;
+    background: #fafbfe;
+    border: 1px dashed #d8dee9;
+    border-radius: 9px;
+}
+
+.inventory-empty-icon {
+    font-size: 38px;
+    margin-bottom: 12px;
+}
+
+.inventory-empty h3 {
+    margin-bottom: 8px;
+    color: #263445;
+    font-size: 17px;
+}
+
+.inventory-empty p {
+    color: #8390a0;
+    font-size: 13px;
+}
+
+
+/* ERROR MESSAGE */
+
+.inventory-alert {
+    padding: 14px 17px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 13px;
+}
+
+.inventory-error {
+    background: #fff0f0;
+    color: #bd3030;
+    border: 1px solid #f2cccc;
+}
+
+
+/* FOOTER */
+
+.inventory-footer {
+    margin-top: 25px;
+}
+
+.inventory-footer a {
+    color: #2769b1;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.inventory-footer a:hover {
+    text-decoration: underline;
+}
+
+
+/* RESPONSIVE DESIGN */
+
+@media (max-width: 900px) {
+
+    .inventory-page {
+        padding: 22px;
+    }
+
+    .inventory-summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+}
+
+@media (max-width: 600px) {
+
+    .inventory-page {
+        padding: 15px;
+    }
+
+    .inventory-heading {
         align-items: flex-start;
         flex-direction: column;
     }
-    .technician-ticket-card { padding: 15px; }
-    .technician-ticket-heading {
+
+    .inventory-heading h1 {
+        font-size: 24px;
+    }
+
+    .inventory-summary {
+        grid-template-columns: 1fr;
+    }
+
+    .inventory-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .inventory-card {
+        padding: 17px;
+    }
+
+    .inventory-card-heading {
         align-items: flex-start;
         flex-direction: column;
     }
-    .technician-ticket-actions { flex-direction: column; }
+
+    .stock-update-form {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
 }

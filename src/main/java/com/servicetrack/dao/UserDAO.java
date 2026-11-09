@@ -153,6 +153,32 @@ public class UserDAO {
         }
     }
 
+
+    public java.util.List<User> findByRole(String role) throws SQLException {
+        java.util.List<User> users = new java.util.ArrayList<>();
+        String sql = "SELECT user_id, full_name, email, phone, username, password_hash, role, status, created_at, updated_at FROM users WHERE role = ? ORDER BY full_name";
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, role);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    users.add(mapUser(resultSet));
+                }
+            }
+        }
+        return users;
+    }
+
+    public boolean updateStatus(Long userId, String status) throws SQLException {
+        String sql = "UPDATE users SET status = ? WHERE user_id = ? AND role = 'TECHNICIAN'";
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, status);
+            statement.setLong(2, userId);
+            return statement.executeUpdate() == 1;
+        }
+    }
+
     private User mapUser(ResultSet resultSet) throws SQLException {
 
         User user = new User();

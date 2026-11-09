@@ -128,5 +128,12 @@ public class WarrantyServlet extends HttpServlet {
         public Warranty getWarranty() {
             return warranty;
         }
+
+        public String getEffectiveStatus() {
+            if (warranty == null) return "NOT AVAILABLE";
+            return com.servicetrack.dao.WarrantyDAO.computeEffectiveStatus(
+                    warranty.getWarrantyStatus(), warranty.getWarrantyStart(),
+                    warranty.getWarrantyEnd(), java.time.LocalDate.now());
+        }
     }
 }

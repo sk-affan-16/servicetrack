@@ -1,23 +1,27 @@
-﻿-- ServiceTrack
--- M5: Billing Module
-
 CREATE TABLE IF NOT EXISTS bills (
-    bill_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    bill_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+
     ticket_id BIGINT UNSIGNED NOT NULL,
 
-    labor_charge DECIMAL(10,2) NOT NULL DEFAULT 0.00,
-    parts_charge DECIMAL(10,2) NOT NULL DEFAULT 0.00,
-    total_amount DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    parts_cost DECIMAL(10,2) NOT NULL DEFAULT 0.00,
 
-    payment_status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
-    payment_method VARCHAR(30) DEFAULT NULL,
+    labour_charge DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+
+    tax_amount DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+
+    total_amount DECIMAL(10,2) NOT NULL,
+
+    payment_status VARCHAR(20) NOT NULL DEFAULT 'UNPAID',
+
+    generated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
     paid_at TIMESTAMP NULL DEFAULT NULL,
 
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-        ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (bill_id),
 
-    CONSTRAINT uq_bills_ticket UNIQUE (ticket_id),
+    UNIQUE KEY uk_bills_ticket_id (ticket_id),
+
+    KEY idx_bills_payment_status (payment_status),
 
     CONSTRAINT fk_bills_ticket
         FOREIGN KEY (ticket_id)
@@ -25,18 +29,22 @@ CREATE TABLE IF NOT EXISTS bills (
         ON DELETE RESTRICT
         ON UPDATE CASCADE,
 
-    CONSTRAINT chk_bills_labor_charge
-        CHECK (labor_charge >= 0),
+    CONSTRAINT chk_bills_parts_cost
+        CHECK (parts_cost >= 0),
 
-    CONSTRAINT chk_bills_parts_charge
-        CHECK (parts_charge >= 0),
+    CONSTRAINT chk_bills_labour_charge
+        CHECK (labour_charge >= 0),
+
+    CONSTRAINT chk_bills_tax_amount
+        CHECK (tax_amount >= 0),
 
     CONSTRAINT chk_bills_total_amount
         CHECK (total_amount >= 0),
 
     CONSTRAINT chk_bills_payment_status
-        CHECK (payment_status IN ('PENDING', 'PAID', 'CANCELLED')),
+        CHECK (payment_status IN ('UNPAID', 'PAID')),
 
-    INDEX idx_bills_payment_status (payment_status),
-    INDEX idx_bills_created_at (created_at)
-);
+    CONSTRAINT chk_bills_total_calculation
+        CHECK (total_amount = parts_cost + labour_charge + tax_amount)
+
+) ENGINE=InnoDB;
