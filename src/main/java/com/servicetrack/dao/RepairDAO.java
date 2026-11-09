@@ -42,64 +42,34 @@ public class RepairDAO {
             "DELETE FROM repairs " +
                     "WHERE repair_id = ?";
 
-    public Repair create(Repair repair)
-            throws SQLException {
-
-        try (Connection connection =
-                     DBConnection.getConnection();
-             PreparedStatement statement =
-                     connection.prepareStatement(
-                             INSERT_SQL,
-                             Statement.RETURN_GENERATED_KEYS)) {
-
-            statement.setLong(
-                    1,
-                    repair.getTicketId()
-            );
-
-            statement.setString(
-                    2,
-                    repair.getDiagnosis()
-            );
-
-            statement.setString(
-                    3,
-                    repair.getRepairNotes()
-            );
-
-            statement.setString(
-                    4,
-                    repair.getRepairStatus()
-            );
-
-            int affectedRows =
-                    statement.executeUpdate();
-
-            if (affectedRows == 0) {
-                throw new SQLException(
-                        "Creating repair failed."
-                );
-            }
-
-            try (ResultSet generatedKeys =
-                         statement.getGeneratedKeys()) {
-
-                if (generatedKeys.next()) {
-
-                    repair.setRepairId(
-                            generatedKeys.getLong(1)
-                    );
-
-                } else {
-
-                    throw new SQLException(
-                            "Creating repair failed: " +
-                                    "no ID obtained."
-                    );
+    public Repair create(Repair repair) throws SQLException {
+        String sql = INSERT_SQL;
+        try (Connection connection = DBConnection.getConnection()) {
+            connection.setAutoCommit(false);
+            try {
+                try (PreparedStatement statement = connection.prepareStatement(
+                        sql, Statement.RETURN_GENERATED_KEYS)) {
+                    statement.setLong(1, repair.getTicketId());
+                    statement.setString(2, repair.getDiagnosis());
+                    statement.setString(3, repair.getRepairNotes());
+                    statement.setString(4, repair.getRepairStatus());
+                    if (statement.executeUpdate() == 0) {
+                        throw new SQLException("Creating repair failed.");
+                    }
+                    try (ResultSet keys = statement.getGeneratedKeys()) {
+                        if (!keys.next()) throw new SQLException("Repair ID was not generated.");
+                        repair.setRepairId(keys.getLong(1));
+                    }
                 }
+                synchronizeTicketStatus(connection, repair.getTicketId(), repair.getRepairStatus());
+                connection.commit();
+                return repair;
+            } catch (SQLException | RuntimeException ex) {
+                connection.rollback();
+                throw ex;
+            } finally {
+                connection.setAutoCommit(true);
             }
-
-            return repair;
         }
     }
 
@@ -162,37 +132,58 @@ public class RepairDAO {
         return repairs;
     }
 
-    public boolean update(
-            Repair repair)
+    public boolean update(Repair repair) throws SQLException {
+        try (Connection connection = DBConnection.getConnection()) {
+            connection.setAutoCommit(false);
+            try {
+                int rows;
+                try (PreparedStatement statement = connection.prepareStatement(UPDATE_SQL)) {
+                    statement.setString(1, repair.getDiagnosis());
+                    statement.setString(2, repair.getRepairNotes());
+                    statement.setString(3, repair.getRepairStatus());
+                    statement.setLong(4, repair.getRepairId());
+                    rows = statement.executeUpdate();
+                }
+                if (rows == 0) {
+                    connection.rollback();
+                    return false;
+                }
+                synchronizeTicketStatus(connection, repair.getTicketId(), repair.getRepairStatus());
+                connection.commit();
+                return true;
+            } catch (SQLException | RuntimeException ex) {
+                connection.rollback();
+                throw ex;
+            } finally {
+                connection.setAutoCommit(true);
+            }
+        }
+    }
+
+    private void synchronizeTicketStatus(Connection connection, Long ticketId, String repairStatus)
             throws SQLException {
+        String latestStatusSql = """
+                SELECT repair_status
+                FROM repairs
+                WHERE ticket_id = ?
+                ORDER BY created_at DESC, repair_id DESC
+                LIMIT 1
+                """;
+        String latestStatus = repairStatus;
+        try (PreparedStatement latest = connection.prepareStatement(latestStatusSql)) {
+            latest.setLong(1, ticketId);
+            try (ResultSet rs = latest.executeQuery()) {
+                if (rs.next()) latestStatus = rs.getString(1);
+            }
+        }
 
-        try (Connection connection =
-                     DBConnection.getConnection();
-             PreparedStatement statement =
-                     connection.prepareStatement(
-                             UPDATE_SQL)) {
-
-            statement.setString(
-                    1,
-                    repair.getDiagnosis()
-            );
-
-            statement.setString(
-                    2,
-                    repair.getRepairNotes()
-            );
-
-            statement.setString(
-                    3,
-                    repair.getRepairStatus()
-            );
-
-            statement.setLong(
-                    4,
-                    repair.getRepairId()
-            );
-
-            return statement.executeUpdate() > 0;
+        String sql = "UPDATE tickets SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE ticket_id = ?";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, latestStatus);
+            statement.setLong(2, ticketId);
+            if (statement.executeUpdate() == 0) {
+                throw new SQLException("Ticket status could not be synchronized with repair status.");
+            }
         }
     }
 

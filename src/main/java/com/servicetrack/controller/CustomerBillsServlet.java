@@ -2,7 +2,6 @@ package com.servicetrack.controller;
 
 import com.servicetrack.model.Bill;
 import com.servicetrack.service.BillingService;
-
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -31,47 +30,36 @@ public class CustomerBillsServlet extends HttpServlet {
 
         HttpSession session = request.getSession(false);
 
-        // Check whether the user is logged in
         if (session == null || session.getAttribute("userId") == null) {
-            response.sendRedirect(
-                    request.getContextPath() + "/login"
-            );
+            response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
 
-        // Allow only customers
-        String role = (String) session.getAttribute("role");
-
-        if (!"CUSTOMER".equals(role)) {
+        if (!"CUSTOMER".equals(session.getAttribute("role"))) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
 
+        Object userIdObject = session.getAttribute("userId");
+        if (!(userIdObject instanceof Number)) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
+        }
+
+        Long userId = ((Number) userIdObject).longValue();
+
         try {
-            // Get authenticated user's ID from session
-            Object userIdObject = session.getAttribute("userId");
-
-            if (!(userIdObject instanceof Number)) {
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
-                return;
-            }
-
-            Long userId = ((Number) userIdObject).longValue();
-
-            // Retrieve only this customer's bills
-            List<Bill> bills =
-                    billingService.getBillsByCustomer(userId);
-
+            List<Bill> bills = billingService.getBillsByCustomer(userId);
             request.setAttribute("bills", bills);
+            request.setAttribute("contentPage",
+                    "/WEB-INF/views/customer/bills-content.jsp");
 
             request.getRequestDispatcher(
-                    "/WEB-INF/views/customer/bills.jsp"
+                    "/WEB-INF/views/common/master.jsp"
             ).forward(request, response);
 
         } catch (SQLException e) {
-            throw new ServletException(
-                    "Unable to load customer bills.", e
-            );
+            throw new ServletException("Unable to load customer bills.", e);
         }
     }
 }

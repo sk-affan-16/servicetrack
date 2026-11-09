@@ -274,7 +274,7 @@ public class PartsUsageServlet extends HttpServlet {
 
         request.setAttribute(
                 "contentPage",
-                "/WEB-INF/views/technician/parts-usage.jsp"
+                "/WEB-INF/views/technician/parts-usage-content.jsp"
         );
 
         request.getRequestDispatcher(
