@@ -1,0 +1,7 @@
+<%@ page import="java.util.List,com.servicetrack.model.Ticket" %>
+<h2>My Assigned Jobs</h2><p>Review assigned tickets and open their repair workspace.</p>
+<% String error=(String)request.getAttribute("error"); if(error!=null){ %><div class="alert error"><%=error%></div><% } %>
+<% List<Ticket> tickets=(List<Ticket>)request.getAttribute("tickets"); if(tickets==null||tickets.isEmpty()){ %><div class="content-card">No assigned tickets currently.</div><% } else { %>
+<div class="table-responsive"><table class="data-table"><thead><tr><th>Ticket</th><th>Service Request</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead><tbody>
+<% for(Ticket t:tickets){ %><tr><td><strong><%=t.getTicketNumber()%></strong><br>#<%=t.getTicketId()%></td><td>#<%=t.getServiceRequestId()%></td><td><%=t.getStatus().name().replace('_',' ')%></td><td><%=t.getCreatedAt()==null?"—":t.getCreatedAt().toString().replace('T',' ')%></td><td><a class="btn small" href="<%=request.getContextPath()%>/technician/ticket?ticketId=<%=t.getTicketId()%>">Details</a> <a class="btn small secondary" href="<%=request.getContextPath()%>/technician/repair?ticketId=<%=t.getTicketId()%>">Open Repair</a></td></tr><% } %>
+</tbody></table></div><% } %>

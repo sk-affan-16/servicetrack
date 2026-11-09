@@ -1,0 +1,4 @@
+<%@ page import="com.servicetrack.model.Ticket" %><% Ticket ticket=(Ticket)request.getAttribute("ticket"); String error=(String)request.getAttribute("error"); %>
+<h2>Ticket Details</h2><% if(error!=null){ %><div class="alert error"><%=error%></div><% } else if(ticket!=null){ %>
+<div class="content-card"><p><strong>Ticket ID:</strong> #<%=ticket.getTicketId()%></p><p><strong>Ticket Number:</strong> <%=ticket.getTicketNumber()%></p><p><strong>Service Request:</strong> #<%=ticket.getServiceRequestId()%></p><p><strong>Status:</strong> <%=ticket.getStatus().name().replace('_',' ')%></p><a class="btn" href="<%=request.getContextPath()%>/technician/repair?ticketId=<%=ticket.getTicketId()%>">Open Repair Workspace</a></div><% } %>
+<a class="btn secondary" href="<%=request.getContextPath()%>/technician/tickets">Back to Assigned Jobs</a>

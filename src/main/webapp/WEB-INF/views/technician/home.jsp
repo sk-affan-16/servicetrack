@@ -4,35 +4,25 @@
 <div class="dashboard-content">
 
     <div class="page-heading">
-        <div>
-            <h1>Technician Dashboard</h1>
-            <p>Welcome back, <strong>${sessionScope.fullName}</strong></p>
-        </div>
+        <h1>Technician Dashboard</h1>
+        <p>Welcome back, <strong>${sessionScope.fullName}</strong></p>
     </div>
 
-    <h2 class="section-heading">Technician Operations</h2>
+    <div class="dashboard-grid">
 
-    <div class="service-grid">
-
-        <div class="service-card">
-            <div class="service-icon">&#128295;</div>
+        <div class="dashboard-card">
             <h3>Repair Management</h3>
-            <p>View assigned repair jobs, perform diagnosis and update repair progress.</p>
-
-            <a class="btn"
-               href="${pageContext.request.contextPath}/technician/tickets">
+            <p>View and manage your assigned repair jobs.</p>
+            <a href="${pageContext.request.contextPath}/technician/tickets">
                 View Assigned Jobs
             </a>
         </div>
 
-        <div class="service-card">
-            <div class="service-icon">&#128230;</div>
+        <div class="dashboard-card">
             <h3>Parts Usage</h3>
-            <p>View and manage spare parts used during assigned repairs.</p>
-
-            <a class="btn"
-               href="${pageContext.request.contextPath}/technician/parts-usage">
-                Manage Parts Usage
+            <p>Select an assigned ticket to manage its spare parts usage.</p>
+            <a href="${pageContext.request.contextPath}/technician/tickets">
+                Select Assigned Ticket
             </a>
         </div>
 

@@ -1,3 +1,4 @@
+
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
@@ -24,9 +25,7 @@
             box-shadow: 0 3px 12px rgba(0,0,0,0.08);
         }
 
-        h1 {
-            color: #1769aa;
-        }
+        h1 { color: #1769aa; }
 
         .form-section {
             background: #f5f8fc;
@@ -35,12 +34,14 @@
             margin: 25px 0;
         }
 
-        input, button {
+        input, select, button {
             padding: 10px;
             margin: 7px 5px 7px 0;
             border-radius: 5px;
             border: 1px solid #ccc;
         }
+
+        select { min-width: 260px; }
 
         button {
             background: #1769aa;
@@ -49,9 +50,8 @@
             cursor: pointer;
         }
 
-        button:hover {
-            background: #10558c;
-        }
+        button:hover { background: #10558c; }
+        button:disabled { background: #999; cursor: not-allowed; }
 
         table {
             width: 100%;
@@ -65,20 +65,9 @@
             text-align: left;
         }
 
-        th {
-            background: #1769aa;
-            color: white;
-        }
-
-        .paid {
-            color: green;
-            font-weight: bold;
-        }
-
-        .unpaid {
-            color: #c0392b;
-            font-weight: bold;
-        }
+        th { background: #1769aa; color: white; }
+        .paid { color: green; font-weight: bold; }
+        .unpaid { color: #c0392b; font-weight: bold; }
 
         .message {
             padding: 12px;
@@ -87,9 +76,7 @@
             border-radius: 5px;
         }
 
-        .error {
-            background: #fdeaea;
-        }
+        .error { background: #fdeaea; }
 
         .back {
             display: inline-block;
@@ -101,7 +88,6 @@
 </head>
 
 <body>
-
 <div class="container">
 
     <h1>Billing Management</h1>
@@ -109,40 +95,71 @@
 
     <c:if test="${param.success == '1'}">
         <div class="message">
-            Billing operation completed successfully.
+            Bill generated or payment updated successfully!
         </div>
     </c:if>
 
     <c:if test="${not empty param.error}">
         <div class="message error">
             Billing operation failed:
-            <c:out value="${param.error}"/>
+            <c:choose>
+                <c:when test="${param.error == 'invalid_input'}">
+                    Please enter valid details.
+                </c:when>
+                <c:when test="${param.error == 'invalid_request'}">
+                    The selected ticket is not eligible or the request is invalid.
+                </c:when>
+                <c:otherwise>
+                    A database error occurred. Please check the server log.
+                </c:otherwise>
+            </c:choose>
         </div>
     </c:if>
 
     <div class="form-section">
         <h2>Generate New Bill</h2>
 
-        <form method="post"
-              action="${pageContext.request.contextPath}/admin/billing">
+        <c:choose>
+            <c:when test="${empty eligibleTickets}">
+                <p>No eligible completed tickets available for billing.</p>
+            </c:when>
 
-            <input type="hidden" name="action" value="generate">
+            <c:otherwise>
+                <form method="post"
+                      action="${pageContext.request.contextPath}/admin/billing">
 
-            <label>Ticket ID:</label>
-            <input type="number"
-                   name="ticketId"
-                   min="1"
-                   required>
+                    <input type="hidden" name="action" value="generate">
 
-            <label>Labour Charge (₹):</label>
-            <input type="number"
-                   name="labourCharge"
-                   min="0"
-                   step="0.01"
-                   required>
+                    <label for="ticketId">Select Completed Ticket:</label>
 
-            <button type="submit">Generate Bill</button>
-        </form>
+                    <select id="ticketId" name="ticketId" required>
+                        <option value="">-- Select Ticket --</option>
+
+                        <c:forEach var="ticket" items="${eligibleTickets}">
+                            <option value="${ticket.ticketId}">
+                                <c:out value="${ticket.ticketNumber}"/>
+                                (ID: <c:out value="${ticket.ticketId}"/>)
+                            </option>
+                        </c:forEach>
+                    </select>
+
+                    <br>
+
+                    <label for="labourCharge">Labour Charge (&#8377;):</label>
+
+                    <input type="number"
+                           id="labourCharge"
+                           name="labourCharge"
+                           min="0"
+                           max="99999999.99"
+                           step="0.01"
+                           placeholder="Enter labour charge"
+                           required>
+
+                    <button type="submit">Generate Bill</button>
+                </form>
+            </c:otherwise>
+        </c:choose>
 
         <p>Parts cost is calculated automatically. Tax is currently zero.</p>
     </div>
@@ -175,10 +192,10 @@
                     <tr>
                         <td><c:out value="${bill.billId}"/></td>
                         <td><c:out value="${bill.ticketId}"/></td>
-                        <td>₹<c:out value="${bill.partsCost}"/></td>
-                        <td>₹<c:out value="${bill.labourCharge}"/></td>
-                        <td>₹<c:out value="${bill.taxAmount}"/></td>
-                        <td><strong>₹<c:out value="${bill.totalAmount}"/></strong></td>
+                        <td>&#8377;<c:out value="${bill.partsCost}"/></td>
+                        <td>&#8377;<c:out value="${bill.labourCharge}"/></td>
+                        <td>&#8377;<c:out value="${bill.taxAmount}"/></td>
+                        <td><strong>&#8377;<c:out value="${bill.totalAmount}"/></strong></td>
 
                         <td>
                             <c:choose>
@@ -225,10 +242,9 @@
 
     <a class="back"
        href="${pageContext.request.contextPath}/admin/dashboard">
-        ← Back to Admin Dashboard
+        &#8592; Back to Admin Dashboard
     </a>
 
 </div>
-
 </body>
 </html>

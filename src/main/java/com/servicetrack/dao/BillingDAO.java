@@ -1,3 +1,4 @@
+
 package com.servicetrack.dao;
 
 import com.servicetrack.model.Bill;
@@ -10,12 +11,14 @@ import java.util.List;
 
 public class BillingDAO {
 
+    // Calculate total spare parts cost for a ticket.
     private static final String PARTS_COST_SQL = """
         SELECT COALESCE(SUM(quantity_used * unit_price), 0)
         FROM repair_part_usage
         WHERE ticket_id = ?
         """;
 
+    // Verify that ticket and its latest repair are completed.
     private static final String VERIFY_COMPLETED_SQL = """
         SELECT COUNT(*)
         FROM tickets t
@@ -36,19 +39,47 @@ public class BillingDAO {
           )
         """;
 
+    // Check whether the ticket's product has a valid warranty.
+    private static final String CHECK_WARRANTY_SQL = """
+        SELECT COUNT(*)
+        FROM tickets t
+        INNER JOIN service_requests sr
+            ON t.service_request_id = sr.service_request_id
+        INNER JOIN warranties w
+            ON sr.product_id = w.product_id
+        WHERE t.ticket_id = ?
+          AND w.warranty_status = 'ACTIVE'
+          AND CURRENT_DATE BETWEEN w.warranty_start
+                               AND w.warranty_end
+        """;
+
+    // Insert a new bill or update an existing bill.
     private static final String INSERT_BILL_SQL = """
         INSERT INTO bills
         (ticket_id, parts_cost, labour_charge, tax_amount,
-         total_amount, payment_status)
-        VALUES (?, ?, ?, ?, ?, 'UNPAID')
+         total_amount, payment_status, paid_at)
+        VALUES (?, ?, ?, ?, ?, ?,
+            CASE WHEN ? = 'PAID'
+                 THEN CURRENT_TIMESTAMP
+                 ELSE NULL
+            END)
+        ON DUPLICATE KEY UPDATE
+            parts_cost = VALUES(parts_cost),
+            labour_charge = VALUES(labour_charge),
+            tax_amount = VALUES(tax_amount),
+            total_amount = VALUES(total_amount),
+            payment_status = VALUES(payment_status),
+            paid_at = VALUES(paid_at)
         """;
 
     private static final String FIND_BY_TICKET_SQL = """
-        SELECT * FROM bills WHERE ticket_id = ?
+        SELECT * FROM bills
+        WHERE ticket_id = ?
         """;
 
     private static final String FIND_ALL_SQL = """
-        SELECT * FROM bills ORDER BY generated_at DESC
+        SELECT * FROM bills
+        ORDER BY generated_at DESC
         """;
 
     private static final String FIND_BY_CUSTOMER_USER_ID_SQL = """
@@ -72,96 +103,147 @@ public class BillingDAO {
             paid_at = CURRENT_TIMESTAMP
         WHERE bill_id = ?
           AND payment_status = 'UNPAID'
+          AND total_amount > 0
         """;
 
-    // Create a bill for a completed ticket
-    public Bill createBill(Long ticketId, BigDecimal labourCharge)
+    // Create or recalculate a bill for a completed ticket.
+    public Bill createBill(
+            Long ticketId,
+            BigDecimal labourCharge)
             throws SQLException {
+
+        if (ticketId == null || ticketId <= 0) {
+            throw new IllegalArgumentException("Invalid ticket ID.");
+        }
+
+        if (labourCharge == null || labourCharge.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Invalid labour charge.");
+        }
 
         try (Connection connection = DBConnection.getConnection()) {
 
             connection.setAutoCommit(false);
 
             try {
-                // Lock the ticket while generating the bill
-                try (PreparedStatement lockStatement =
+
+                // Step 1: Lock the ticket during bill generation.
+                try (PreparedStatement statement =
                              connection.prepareStatement(
                                      "SELECT ticket_id FROM tickets WHERE ticket_id = ? FOR UPDATE")) {
 
-                    lockStatement.setLong(1, ticketId);
+                    statement.setLong(1, ticketId);
 
-                    try (ResultSet rs = lockStatement.executeQuery()) {
+                    try (ResultSet rs = statement.executeQuery()) {
                         if (!rs.next()) {
                             throw new SQLException("Ticket not found.");
                         }
                     }
                 }
 
-                // Verify ticket and latest repair are completed
-                try (PreparedStatement verifyStatement =
+                // Step 2: Verify completed ticket and repair.
+                try (PreparedStatement statement =
                              connection.prepareStatement(VERIFY_COMPLETED_SQL)) {
 
-                    verifyStatement.setLong(1, ticketId);
+                    statement.setLong(1, ticketId);
 
-                    try (ResultSet rs = verifyStatement.executeQuery()) {
+                    try (ResultSet rs = statement.executeQuery()) {
                         rs.next();
 
                         if (rs.getInt(1) == 0) {
                             throw new SQLException(
-                                    "Bill can only be generated after the ticket and latest repair are completed."
+                                    "Bill can only be generated after the ticket "
+                                            + "and latest repair are completed."
                             );
                         }
                     }
                 }
 
-                // Calculate parts cost
-                BigDecimal partsCost;
+                // Step 3: Check warranty validity.
+                boolean warrantyValid;
 
-                try (PreparedStatement partsStatement =
-                             connection.prepareStatement(PARTS_COST_SQL)) {
+                try (PreparedStatement statement =
+                             connection.prepareStatement(CHECK_WARRANTY_SQL)) {
 
-                    partsStatement.setLong(1, ticketId);
+                    statement.setLong(1, ticketId);
 
-                    try (ResultSet rs = partsStatement.executeQuery()) {
+                    try (ResultSet rs = statement.executeQuery()) {
                         rs.next();
-                        partsCost = rs.getBigDecimal(1);
+                        warrantyValid = rs.getInt(1) > 0;
                     }
                 }
 
-                BigDecimal taxAmount = BigDecimal.ZERO.setScale(2);
+                // Step 4: Calculate spare parts cost.
+                BigDecimal partsCost;
 
-                BigDecimal totalAmount = partsCost
-                        .add(labourCharge)
-                        .add(taxAmount);
+                try (PreparedStatement statement =
+                             connection.prepareStatement(PARTS_COST_SQL)) {
 
-                // Insert bill
-                try (PreparedStatement insertStatement =
-                             connection.prepareStatement(
-                                     INSERT_BILL_SQL,
-                                     Statement.RETURN_GENERATED_KEYS)) {
+                    statement.setLong(1, ticketId);
 
-                    insertStatement.setLong(1, ticketId);
-                    insertStatement.setBigDecimal(2, partsCost);
-                    insertStatement.setBigDecimal(3, labourCharge);
-                    insertStatement.setBigDecimal(4, taxAmount);
-                    insertStatement.setBigDecimal(5, totalAmount);
+                    try (ResultSet rs = statement.executeQuery()) {
+                        rs.next();
+                        partsCost = rs.getBigDecimal(1);
 
-                    insertStatement.executeUpdate();
-
-                    try (ResultSet keys = insertStatement.getGeneratedKeys()) {
-                        if (!keys.next()) {
-                            throw new SQLException("Bill creation failed.");
+                        if (partsCost == null) {
+                            partsCost = BigDecimal.ZERO;
                         }
                     }
                 }
 
+                // Step 5: Calculate final bill.
+                BigDecimal finalLabourCharge;
+                BigDecimal taxAmount = BigDecimal.ZERO.setScale(2);
+                BigDecimal totalAmount;
+                String paymentStatus;
+
+                if (warrantyValid) {
+
+                    // Full warranty means all charges are free.
+                    partsCost = BigDecimal.ZERO.setScale(2);
+                    finalLabourCharge = BigDecimal.ZERO.setScale(2);
+                    totalAmount = BigDecimal.ZERO.setScale(2);
+
+                    paymentStatus = "PAID";
+
+                } else {
+
+                    // Normal charges when warranty is invalid.
+                    finalLabourCharge = labourCharge.setScale(2);
+
+                    partsCost = partsCost.setScale(2);
+
+                    totalAmount = partsCost
+                            .add(finalLabourCharge)
+                            .add(taxAmount);
+
+                    paymentStatus = "UNPAID";
+                }
+
+                // Step 6: Insert new bill or update existing bill.
+                try (PreparedStatement statement =
+                             connection.prepareStatement(INSERT_BILL_SQL)) {
+
+                    statement.setLong(1, ticketId);
+                    statement.setBigDecimal(2, partsCost);
+                    statement.setBigDecimal(3, finalLabourCharge);
+                    statement.setBigDecimal(4, taxAmount);
+                    statement.setBigDecimal(5, totalAmount);
+                    statement.setString(6, paymentStatus);
+                    statement.setString(7, paymentStatus);
+
+                    statement.executeUpdate();
+                }
+
+                // Step 7: Commit transaction.
                 connection.commit();
 
             } catch (SQLException | RuntimeException e) {
+
                 connection.rollback();
                 throw e;
 
             } finally {
+
                 connection.setAutoCommit(true);
             }
         }
@@ -169,8 +251,9 @@ public class BillingDAO {
         return findByTicketId(ticketId);
     }
 
-    // Find bill using ticket ID
-    public Bill findByTicketId(Long ticketId) throws SQLException {
+    // Find bill using ticket ID.
+    public Bill findByTicketId(Long ticketId)
+            throws SQLException {
 
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement =
@@ -188,7 +271,7 @@ public class BillingDAO {
         return null;
     }
 
-    // Find all bills for admin
+    // Find all bills for admin.
     public List<Bill> findAll() throws SQLException {
 
         List<Bill> bills = new ArrayList<>();
@@ -206,7 +289,7 @@ public class BillingDAO {
         return bills;
     }
 
-    // Find bills belonging only to the specified customer
+    // Find bills belonging to a customer.
     public List<Bill> findBillsByCustomerUserId(Long userId)
             throws SQLException {
 
@@ -214,8 +297,7 @@ public class BillingDAO {
 
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement =
-                     connection.prepareStatement(
-                             FIND_BY_CUSTOMER_USER_ID_SQL)) {
+                     connection.prepareStatement(FIND_BY_CUSTOMER_USER_ID_SQL)) {
 
             statement.setLong(1, userId);
 
@@ -229,8 +311,9 @@ public class BillingDAO {
         return bills;
     }
 
-    // Mark bill as paid
-    public boolean markAsPaid(Long billId) throws SQLException {
+    // Mark a bill as paid.
+    public boolean markAsPaid(Long billId)
+            throws SQLException {
 
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement =
@@ -242,8 +325,9 @@ public class BillingDAO {
         }
     }
 
-    // Convert database result into Bill object
-    private Bill mapBill(ResultSet rs) throws SQLException {
+    // Convert database result into Bill object.
+    private Bill mapBill(ResultSet rs)
+            throws SQLException {
 
         Bill bill = new Bill();
 
@@ -256,11 +340,13 @@ public class BillingDAO {
         bill.setPaymentStatus(rs.getString("payment_status"));
 
         Timestamp generatedAt = rs.getTimestamp("generated_at");
+
         if (generatedAt != null) {
             bill.setGeneratedAt(generatedAt.toLocalDateTime());
         }
 
         Timestamp paidAt = rs.getTimestamp("paid_at");
+
         if (paidAt != null) {
             bill.setPaidAt(paidAt.toLocalDateTime());
         }
