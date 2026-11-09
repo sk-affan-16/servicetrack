@@ -1,9 +1,7 @@
-
 package com.servicetrack.controller;
 
 import com.servicetrack.model.Ticket;
 import com.servicetrack.service.TicketService;
-
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -27,8 +25,8 @@ public class TechnicianTicketsServlet extends HttpServlet {
             HttpServletResponse response)
             throws ServletException, IOException {
 
-        // Check existing session
-        HttpSession session = request.getSession(false);
+        HttpSession session =
+                request.getSession(false);
 
         if (session == null) {
             response.sendRedirect(
@@ -37,18 +35,6 @@ public class TechnicianTicketsServlet extends HttpServlet {
             return;
         }
 
-        // Check technician role
-        String role = (String) session.getAttribute("role");
-
-        if (!"TECHNICIAN".equals(role)) {
-            response.sendError(
-                    HttpServletResponse.SC_FORBIDDEN,
-                    "Technician access required."
-            );
-            return;
-        }
-
-        // Get logged-in technician ID
         Long technicianId =
                 (Long) session.getAttribute("userId");
 
@@ -61,22 +47,18 @@ public class TechnicianTicketsServlet extends HttpServlet {
 
         try {
 
-            // Fetch only tickets assigned to this technician
             List<Ticket> tickets =
                     ticketService.getTicketsByTechnician(
                             technicianId
                     );
 
-            request.setAttribute("tickets", tickets);
-
-            // Load tickets JSP inside common master layout
             request.setAttribute(
-                    "contentPage",
-                    "/WEB-INF/views/technician/tickets.jsp"
+                    "tickets",
+                    tickets
             );
 
             request.getRequestDispatcher(
-                    "/WEB-INF/views/common/master.jsp"
+                    "/WEB-INF/views/technician/tickets.jsp"
             ).forward(request, response);
 
         } catch (SQLException e) {
