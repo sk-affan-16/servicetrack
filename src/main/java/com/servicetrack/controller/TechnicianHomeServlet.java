@@ -1,3 +1,4 @@
+
 package com.servicetrack.controller;
 
 import jakarta.servlet.ServletException;
@@ -5,7 +6,6 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 
@@ -18,16 +18,13 @@ public class TechnicianHomeServlet extends HttpServlet {
             HttpServletResponse response)
             throws ServletException, IOException {
 
-        HttpSession session = request.getSession(false);
-
-        if (session == null ||
-                !"TECHNICIAN".equals(session.getAttribute("role"))) {
-            response.sendRedirect(request.getContextPath() + "/login");
-            return;
-        }
+        request.setAttribute(
+                "contentPage",
+                "/WEB-INF/views/technician/home.jsp"
+        );
 
         request.getRequestDispatcher(
-                "/WEB-INF/views/technician/home.jsp"
+                "/WEB-INF/views/common/master.jsp"
         ).forward(request, response);
     }
 }

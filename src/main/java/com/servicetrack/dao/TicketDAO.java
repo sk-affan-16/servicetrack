@@ -1,4 +1,3 @@
-
 package com.servicetrack.dao;
 
 import com.servicetrack.model.Ticket;
@@ -11,9 +10,6 @@ import java.util.List;
 
 public class TicketDAO {
 
-    /*
-     * Find ticket using ticket ID.
-     */
     public Ticket findById(Long ticketId)
             throws SQLException {
 
@@ -47,9 +43,6 @@ public class TicketDAO {
         return null;
     }
 
-    /*
-     * Find ticket using service request ID.
-     */
     public Ticket findByServiceRequestId(Long serviceRequestId)
             throws SQLException {
 
@@ -83,9 +76,6 @@ public class TicketDAO {
         return null;
     }
 
-    /*
-     * Find ticket using ticket number.
-     */
     public Ticket findByTicketNumber(String ticketNumber)
             throws SQLException {
 
@@ -120,7 +110,10 @@ public class TicketDAO {
     }
 
     /*
-     * Create a new ticket.
+     * Normal create method.
+     *
+     * Technician assignment happens separately,
+     * so technician_id is initially NULL.
      */
     public Long create(Ticket ticket)
             throws SQLException {
@@ -182,8 +175,10 @@ public class TicketDAO {
     }
 
     /*
-     * Transaction-capable ticket creation.
-     * Uses the caller's existing JDBC connection.
+     * Transaction-capable create method.
+     *
+     * Technician assignment happens separately,
+     * so technician_id is initially NULL.
      */
     public Long create(
             Connection connection,
@@ -246,7 +241,7 @@ public class TicketDAO {
     }
 
     /*
-     * Assign a technician to a ticket.
+     * Assigns a technician to a ticket.
      */
     public boolean assignTechnician(
             Long ticketId,
@@ -258,8 +253,6 @@ public class TicketDAO {
                 SET technician_id = ?,
                     status = ?
                 WHERE ticket_id = ?
-                  AND technician_id IS NULL
-                  AND status = 'PENDING'
                 """;
 
         try (Connection connection = DBConnection.getConnection();
@@ -267,10 +260,7 @@ public class TicketDAO {
                      connection.prepareStatement(sql)) {
 
             statement.setLong(1, technicianId);
-            statement.setString(
-                    2,
-                    TicketStatus.ASSIGNED.name()
-            );
+            statement.setString(2, TicketStatus.ASSIGNED.name());
             statement.setLong(3, ticketId);
 
             return statement.executeUpdate() > 0;
@@ -278,7 +268,7 @@ public class TicketDAO {
     }
 
     /*
-     * Find tickets assigned to a particular technician.
+     * Finds all tickets assigned to a technician.
      */
     public List<Ticket> findByTechnicianId(
             Long technicianId)
@@ -297,7 +287,8 @@ public class TicketDAO {
                 ORDER BY created_at DESC
                 """;
 
-        List<Ticket> tickets = new ArrayList<>();
+        List<Ticket> tickets =
+                new ArrayList<>();
 
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement =
@@ -309,7 +300,9 @@ public class TicketDAO {
                          statement.executeQuery()) {
 
                 while (resultSet.next()) {
-                    tickets.add(mapRow(resultSet));
+                    tickets.add(
+                            mapRow(resultSet)
+                    );
                 }
             }
         }
@@ -317,111 +310,28 @@ public class TicketDAO {
         return tickets;
     }
 
-    /*
-     * Find tickets eligible for billing.
-     *
-     * Conditions:
-     * 1. Ticket status must be COMPLETED.
-     * 2. Latest repair must be COMPLETED.
-     * 3. No bill must already exist for the ticket.
-     */
-    public List<Ticket> findTicketsEligibleForBilling()
+    public boolean updateStatus(
+            Long ticketId,
+            TicketStatus status)
             throws SQLException {
 
         String sql = """
-                SELECT t.ticket_id,
-                       t.service_request_id,
-                       t.technician_id,
-                       t.ticket_number,
-                       t.status,
-                       t.created_at,
-                       t.updated_at
-                FROM tickets t
-                WHERE t.status = 'COMPLETED'
-
-                  AND EXISTS (
-                      SELECT 1
-                      FROM repairs r
-                      WHERE r.ticket_id = t.ticket_id
-                        AND r.repair_id = (
-                            SELECT r2.repair_id
-                            FROM repairs r2
-                            WHERE r2.ticket_id = t.ticket_id
-                            ORDER BY r2.created_at DESC,
-                                     r2.repair_id DESC
-                            LIMIT 1
-                        )
-                        AND r.repair_status = 'COMPLETED'
-                  )
-
-                  AND NOT EXISTS (
-                      SELECT 1
-                      FROM bills b
-                      WHERE b.ticket_id = t.ticket_id
-                  )
-
-                ORDER BY t.created_at DESC
+                UPDATE tickets
+                SET status = ?
+                WHERE ticket_id = ?
                 """;
-
-        List<Ticket> tickets = new ArrayList<>();
 
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement =
-                     connection.prepareStatement(sql);
-             ResultSet resultSet = statement.executeQuery()) {
+                     connection.prepareStatement(sql)) {
 
-            while (resultSet.next()) {
-                tickets.add(mapRow(resultSet));
-            }
-        }
-
-        return tickets;
-    }
-
-    /*
-     * Update ticket status.
-     */
-    public boolean updateStatus(Long ticketId, TicketStatus status)
-            throws SQLException {
-        String sql;
-        if (status == TicketStatus.COMPLETED) {
-            // Completion must be backed by the latest completed repair record.
-            sql = """
-                    UPDATE tickets
-                    SET status = ?, updated_at = CURRENT_TIMESTAMP
-                    WHERE ticket_id = ?
-                      AND EXISTS (
-                          SELECT 1 FROM repairs r
-                          WHERE r.ticket_id = tickets.ticket_id
-                            AND r.repair_id = (
-                                SELECT r2.repair_id
-                                FROM repairs r2
-                                WHERE r2.ticket_id = tickets.ticket_id
-                                ORDER BY r2.created_at DESC, r2.repair_id DESC
-                                LIMIT 1
-                            )
-                            AND r.repair_status = 'COMPLETED'
-                      )
-                    """;
-        } else {
-            sql = """
-                    UPDATE tickets
-                    SET status = ?, updated_at = CURRENT_TIMESTAMP
-                    WHERE ticket_id = ?
-                    """;
-        }
-
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, status.name());
             statement.setLong(2, ticketId);
+
             return statement.executeUpdate() > 0;
         }
     }
 
-    /*
-     * Find tickets using their status.
-     */
     public List<Ticket> findByStatus(TicketStatus status)
             throws SQLException {
 
@@ -438,7 +348,8 @@ public class TicketDAO {
                 ORDER BY created_at DESC
                 """;
 
-        List<Ticket> tickets = new ArrayList<>();
+        List<Ticket> tickets =
+                new ArrayList<>();
 
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement =
@@ -450,7 +361,9 @@ public class TicketDAO {
                          statement.executeQuery()) {
 
                 while (resultSet.next()) {
-                    tickets.add(mapRow(resultSet));
+                    tickets.add(
+                            mapRow(resultSet)
+                    );
                 }
             }
         }
@@ -458,20 +371,21 @@ public class TicketDAO {
         return tickets;
     }
 
-    /*
-     * Convert ResultSet into Ticket JavaBean.
-     */
     private Ticket mapRow(ResultSet resultSet)
             throws SQLException {
 
         Ticket ticket = new Ticket();
 
         ticket.setTicketId(
-                resultSet.getLong("ticket_id")
+                resultSet.getLong(
+                        "ticket_id"
+                )
         );
 
         ticket.setServiceRequestId(
-                resultSet.getLong("service_request_id")
+                resultSet.getLong(
+                        "service_request_id"
+                )
         );
 
         long technicianId =
@@ -482,7 +396,9 @@ public class TicketDAO {
         }
 
         ticket.setTicketNumber(
-                resultSet.getString("ticket_number")
+                resultSet.getString(
+                        "ticket_number"
+                )
         );
 
         ticket.setStatus(

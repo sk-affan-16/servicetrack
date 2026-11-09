@@ -16,61 +16,124 @@ import java.sql.SQLException;
 @WebServlet("/technician/ticket/status")
 public class TechnicianTicketStatusServlet extends HttpServlet {
 
-    private final TicketService ticketService = new TicketService();
+    private final TicketService ticketService =
+            new TicketService();
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+    protected void doPost(
+            HttpServletRequest request,
+            HttpServletResponse response)
             throws ServletException, IOException {
 
-        HttpSession session = request.getSession(false);
-        if (session == null || !"TECHNICIAN".equals(session.getAttribute("role"))) {
-            response.sendRedirect(request.getContextPath() + "/login");
+        HttpSession session =
+                request.getSession(false);
+
+        if (session == null) {
+            response.sendRedirect(
+                    request.getContextPath() + "/login"
+            );
             return;
         }
 
-        Long technicianId = (Long) session.getAttribute("userId");
-        String ticketIdParameter = request.getParameter("ticketId");
-        String statusParameter = request.getParameter("status");
+        Long technicianId =
+                (Long) session.getAttribute("userId");
+
+        if (technicianId == null) {
+            response.sendRedirect(
+                    request.getContextPath() + "/login"
+            );
+            return;
+        }
+
+        String ticketIdParameter =
+                request.getParameter("ticketId");
+
+        String statusParameter =
+                request.getParameter("status");
 
         try {
-            if (ticketIdParameter == null || statusParameter == null) {
-                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Ticket ID and status are required.");
+
+            Long ticketId =
+                    Long.parseLong(ticketIdParameter);
+
+            Ticket ticket =
+                    ticketService.getTicket(ticketId);
+
+            if (ticket == null) {
+                request.setAttribute(
+                        "error",
+                        "Ticket not found."
+                );
+
+                request.getRequestDispatcher(
+                        "/WEB-INF/views/technician/ticket-details.jsp"
+                ).forward(request, response);
+
                 return;
             }
 
-            Long ticketId = Long.parseLong(ticketIdParameter);
-            Ticket ticket = ticketService.getTicket(ticketId);
+            if (ticket.getTechnicianId() == null
+                    || !ticket.getTechnicianId()
+                    .equals(technicianId)) {
 
-            if (ticket == null || ticket.getTechnicianId() == null
-                    || !ticket.getTechnicianId().equals(technicianId)) {
-                response.sendError(HttpServletResponse.SC_FORBIDDEN, "You are not authorized to update this ticket.");
+                request.setAttribute(
+                        "error",
+                        "You are not authorized to update this ticket."
+                );
+
+                request.getRequestDispatcher(
+                        "/WEB-INF/views/technician/ticket-details.jsp"
+                ).forward(request, response);
+
                 return;
             }
 
-            TicketStatus status = TicketStatus.valueOf(statusParameter.trim().toUpperCase());
+            TicketStatus status =
+                    TicketStatus.valueOf(
+                            statusParameter
+                                    .trim()
+                                    .toUpperCase()
+                    );
 
-            // Repair completion must happen through RepairDAO so both records
-            // are updated together in one JDBC transaction.
-            if (status == TicketStatus.COMPLETED) {
-                response.sendRedirect(request.getContextPath()
-                        + "/technician/repair?ticketId=" + ticketId);
-                return;
-            }
+            ticketService.updateStatus(
+                    ticketId,
+                    status
+            );
 
-            boolean updated = ticketService.updateStatus(ticketId, status);
-            if (!updated) {
-                response.sendRedirect(request.getContextPath()
-                        + "/technician/repair?ticketId=" + ticketId + "&error=status");
-                return;
-            }
+            response.sendRedirect(
+                    request.getContextPath()
+                            + "/technician/ticket?ticketId="
+                            + ticketId
+            );
 
-            response.sendRedirect(request.getContextPath()
-                    + "/technician/ticket?ticketId=" + ticketId);
+        } catch (NumberFormatException e) {
+
+            request.setAttribute(
+                    "error",
+                    "Invalid ticket ID."
+            );
+
+            request.getRequestDispatcher(
+                    "/WEB-INF/views/technician/ticket-details.jsp"
+            ).forward(request, response);
 
         } catch (IllegalArgumentException e) {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid ticket ID or status.");
+
+            request.setAttribute(
+                    "error",
+                    "Invalid ticket status."
+            );
+
+            request.getRequestDispatcher(
+                    "/WEB-INF/views/technician/ticket-details.jsp"
+            ).forward(request, response);
+
         } catch (SQLException e) {
-            throw new ServletException("Unable to update ticket status.", e);
+
+            throw new ServletException(
+                    "Unable to update ticket status.",
+                    e
+            );
         }
     }
 }
