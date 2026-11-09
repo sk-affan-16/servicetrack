@@ -149,4 +149,9 @@ public class TicketService {
             );
         }
     }
+    public List<Ticket> getTicketsEligibleForBilling()
+            throws SQLException {
+
+        return ticketDAO.findTicketsEligibleForBilling();
+    }
 }
